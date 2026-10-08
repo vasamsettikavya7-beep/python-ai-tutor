@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply antialiased min-h-screen selection:bg-amber-200 selection:text-amber-900;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+
+  code, pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+}
+
+/* ------------------------------------------------------------
+   THEME BACKGROUNDS FOR HIGH USER-FRIENDLINESS & FOCUS
+   ------------------------------------------------------------ */
+
+/* 1. Ambient Warm & Sky (Default - Cheerful Sky & Amber) */
+.theme-ambient {
+  background-color: #f0f7ff;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(186, 230, 253, 0.75) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(254, 240, 138, 0.65) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(224, 231, 255, 0.6) 0px, transparent 60%),
+    radial-gradient(rgba(100, 116, 139, 0.12) 1px, transparent 1px);
+  background-size: auto, auto, auto, 24px 24px;
+  background-attachment: fixed;
+}
+
+/* 2. Eye Comfort Mint (Noticeable soothing sage/mint green to relax eyes) */
+.theme-mint {
+  background-color: #e8f5ec !important;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(134, 239, 172, 0.7) 0px, transparent 55%),
+    radial-gradient(at 100% 0%, rgba(187, 247, 208, 0.65) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(254, 243, 199, 0.5) 0px, transparent 60%),
+    radial-gradient(rgba(16, 149, 106, 0.14) 1px, transparent 1px) !important;
+  background-size: auto, auto, auto, 24px 24px !important;
+  background-attachment: fixed !important;
+}
+
+/* 3. Clean Modern Slate (Crisp, cool minimalist slate gray) */
+.theme-clean {
+  background-color: #edf2f7 !important;
+  background-image: 
+    radial-gradient(at 50% 0%, rgba(226, 232, 240, 0.95) 0px, transparent 65%),
+    radial-gradient(at 100% 100%, rgba(203, 213, 225, 0.6) 0px, transparent 55%),
+    radial-gradient(rgba(71, 85, 105, 0.10) 1px, transparent 1px) !important;
+  background-size: auto, auto, 24px 24px !important;
+  background-attachment: fixed !important;
+}
+
+/* 4. Dark Academy (Deep Slate & Midnight for late night studying) */
+.theme-dark {
+  background-color: #0b1120 !important;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.25) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.20) 0px, transparent 45%),
+    radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.22) 0px, transparent 55%),
+    radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px) !important;
+  background-size: auto, auto, auto, 24px 24px !important;
+  background-attachment: fixed !important;
+  color: #f8fafc;
+}
+
+/* Custom scrollbars for tutor chat and lists */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Custom card hover elevation effects */
+.card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+/* Smooth pulse animation */
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-soft-pulse {
+  animation: soft-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
