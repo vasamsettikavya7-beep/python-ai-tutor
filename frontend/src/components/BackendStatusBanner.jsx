@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Server, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, Server, Copy, Check, ChevronDown, ChevronUp, X } from 'lucide-react';
 
 export default function BackendStatusBanner({ onRetry }) {
   const [showDetails, setShowDetails] = useState(false);
   const [copiedCmd, setCopiedCmd] = useState(false);
   const [copiedCors, setCopiedCors] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const isCloud = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      return sessionStorage.getItem('pb_dismiss_backend_banner') === 'true' || isCloud;
+    }
+    return false;
+  });
+
+  if (dismissed) return null;
 
   const startCmd = `uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload`;
 
@@ -28,6 +37,13 @@ app.add_middleware(
     navigator.clipboard.writeText(corsCode);
     setCopiedCors(true);
     setTimeout(() => setCopiedCors(false), 2000);
+  };
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    try {
+      sessionStorage.setItem('pb_dismiss_backend_banner', 'true');
+    } catch {}
   };
 
   return (
@@ -62,6 +78,13 @@ app.add_middleware(
             className="px-2.5 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
           >
             Troubleshooting {showDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+          <button
+            onClick={handleDismiss}
+            className="p-1.5 hover:bg-amber-200/80 text-amber-800 rounded-lg transition-colors ml-1 cursor-pointer"
+            title="Dismiss this banner"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
       </div>
