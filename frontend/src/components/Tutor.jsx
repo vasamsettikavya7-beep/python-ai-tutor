@@ -184,7 +184,7 @@ export default function Tutor({
     } catch (err) {
       if (err.message && err.message.includes('Unable to connect')) {
         const guide = getTopicGuide(queryTopic, query.trim());
-        const fallbackAnswer = `### 📚 Python Guide: ${guide.title}\n\n*${guide.summary}*\n\n${guide.explanation}\n\n> 💡 *Note: Running in Cloud Standalone Mode. To enable customized real-time responses from Gemini AI, connect your cloud backend or run FastAPI on \`http://127.0.0.1:8000\`.*`;
+        const fallbackAnswer = `### 📚 Python Guide: ${guide.title}\n\n*${guide.summary}*\n\n${guide.explanation}`;
 
         const assistantMessage = {
           role: 'assistant',
