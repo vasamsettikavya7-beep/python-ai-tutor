@@ -93,6 +93,155 @@ const SUGGESTED_PROMPTS = [
   { topic: 'Async / Await', q: 'What is async/await in Python and how does concurrency work?' },
 ];
 
+const TOPIC_EXPLANATIONS = {
+  'Variables': `In Python, **variables** are containers used to store data values. Python is dynamically typed, meaning you don't need to declare types explicitly.
+
+\`\`\`python
+# Variable assignments
+user_name = "Alex"      # str
+user_age = 21           # int
+gpa = 3.85              # float
+is_enrolled = True      # bool
+
+print(f"Student: {user_name}, Age: {user_age}, GPA: {gpa}")
+\`\`\`
+
+**Key Points:**
+- Variable names must start with a letter or underscore (\`_\`).
+- Follow **snake_case** naming conventions according to PEP 8 standards.`,
+
+  'Loops': `Python offers two primary loop constructs: **\`for\` loops** (for definite iteration) and **\`while\` loops** (for condition-based iteration).
+
+\`\`\`python
+# 1. for loop with range
+for i in range(1, 6):
+    print(f"Step {i}: square is {i ** 2}")
+
+# 2. while loop
+countdown = 3
+while countdown > 0:
+    print(countdown)
+    countdown -= 1
+print("Blastoff! 🚀")
+\`\`\`
+
+**Key Points:**
+- \`range(start, stop, step)\` generates integers up to \`stop - 1\`.
+- Use \`break\` to exit early and \`continue\` to skip to the next iteration.`,
+
+  'Functions': `**Functions** are reusable code blocks that accept inputs (parameters), perform logic, and return a result.
+
+\`\`\`python
+def calculate_grade(score: float) -> str:
+    """Returns letter grade based on numeric score."""
+    if score >= 90:
+        return "A"
+    elif score >= 80:
+        return "B"
+    elif score >= 70:
+        return "C"
+    return "F"
+
+print(calculate_grade(88))  # Output: B
+\`\`\`
+
+**Key Points:**
+- Defined using the \`def\` keyword.
+- Default arguments allow optional parameters (\`def greet(name="Student")\`).`,
+
+  'Lists': `**Lists** are mutable, ordered collections in Python that can store items of any data type.
+
+\`\`\`python
+fruits = ["apple", "banana", "cherry"]
+
+fruits.append("mango")       # Append to end
+fruits.insert(1, "orange")   # Insert at index
+first_two = fruits[:2]       # Slicing: ['apple', 'orange']
+fruits.sort()                # Alphabetical sort
+
+print("Fruits:", fruits)
+\`\`\`
+
+**Key Points:**
+- Zero-indexed (first element is index 0).
+- Fully mutable (elements can be replaced or rearranged in-place).`,
+
+  'Dictionaries': `**Dictionaries** store key-value mappings with extremely fast hash-based lookup time.
+
+\`\`\`python
+student = {
+    "name": "Sarah",
+    "course": "Python Mastery",
+    "xp": 120
+}
+
+# Safe access using .get():
+xp_val = student.get("xp", 0)
+student["level"] = "Intermediate"
+
+for key, value in student.items():
+    print(f"{key}: {value}")
+\`\`\`
+
+**Key Points:**
+- Keys must be immutable types (strings, numbers, tuples).
+- Use \`.get(key, default)\` to safely handle missing keys.`,
+
+  'OOP': `**Object-Oriented Programming (OOP)** organizes software design around classes (blueprints) and objects (instances).
+
+\`\`\`python
+class BankAccount:
+    def __init__(self, owner: str, balance: float = 0.0):
+        self.owner = owner
+        self.balance = balance
+
+    def deposit(self, amount: float):
+        if amount > 0:
+            self.balance += amount
+            return f"Deposited \${amount}. New balance: \${self.balance}"
+
+account = BankAccount("Taylor", 100)
+print(account.deposit(50))
+\`\`\`
+
+**Key Points:**
+- \`__init__\` initializes object state upon creation.
+- \`self\` refers to the current instance.`,
+
+  'List Comprehensions': `**List Comprehensions** provide a concise, idiomatic syntax for building new lists from existing sequences.
+
+\`\`\`python
+# Syntax: [expression for item in iterable if condition]
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+even_squares = [n ** 2 for n in numbers if n % 2 == 0]
+print(even_squares)  # [4, 16, 36, 64, 100]
+\`\`\`
+
+**Key Points:**
+- Faster and more readable than standard \`for\` loops with \`.append()\`.
+- Can include optional filter conditions at the end.`,
+
+  'Exception Handling': `**Exception Handling** ensures robust applications by gracefully handling runtime errors.
+
+\`\`\`python
+try:
+    num = int("42")
+    result = 100 / num
+    print(f"Result: {result}")
+except ValueError:
+    print("Invalid numeric format!")
+except ZeroDivisionError:
+    print("Cannot divide by zero!")
+finally:
+    print("Execution finalized.")
+\`\`\`
+
+**Key Points:**
+- Catch specific exceptions rather than bare \`except:\`.
+- The \`finally\` block always runs regardless of exceptions.`,
+};
+
 export default function Tutor({
   student,
   initialTopic = 'Variables',
@@ -181,20 +330,43 @@ export default function Tutor({
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      setError(err.message || 'Error communicating with AI Tutor.');
-      // Restore question in input bar so user doesn't lose their input
-      setQuestion(query.trim());
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'system-error',
-          text: err.message || 'Unable to receive response from backend.',
-          query: query.trim(),
+      if (err.message && err.message.includes('Unable to connect')) {
+        const matchingKey = Object.keys(TOPIC_EXPLANATIONS).find((key) =>
+          queryTopic.toLowerCase().includes(key.toLowerCase()) ||
+          query.toLowerCase().includes(key.toLowerCase())
+        );
+
+        const explanation = matchingKey
+          ? TOPIC_EXPLANATIONS[matchingKey]
+          : `Here is a foundational review of **${queryTopic}** in Python:\n\n\`\`\`python\n# Practicing ${queryTopic}\n# Test your knowledge in the Quiz tab!\n\`\`\`\n\n- Head over to the **Quiz** tab to test yourself with curated questions and earn XP!`;
+
+        const fallbackAnswer = `### 📚 Python Guide: ${queryTopic}\n\n${explanation}\n\n> 💡 *Note: Running in Cloud Standalone Mode. To enable live custom generative responses from Gemini AI, connect your cloud backend or run FastAPI on \`http://127.0.0.1:8000\`.*`;
+
+        const assistantMessage = {
+          role: 'assistant',
+          text: fallbackAnswer,
           topic: queryTopic,
           mode: mode,
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
+        };
+
+        setMessages((prev) => [...prev, assistantMessage]);
+        setError(null);
+      } else {
+        setError(err.message || 'Error communicating with AI Tutor.');
+        setQuestion(query.trim());
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'system-error',
+            text: err.message || 'Unable to receive response from backend.',
+            query: query.trim(),
+            topic: queryTopic,
+            mode: mode,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      }
     } finally {
       setLoading(false);
     }

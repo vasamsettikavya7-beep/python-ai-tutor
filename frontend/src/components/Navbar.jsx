@@ -31,6 +31,11 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
 
+  const isCloud =
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1';
+
   const THEMES = [
     { id: 'ambient', name: 'Warm Sky & Amber', badge: 'Default', icon: '☀️', desc: 'Friendly, warm gradient' },
     { id: 'mint', name: 'Eye Comfort Mint', badge: 'Ergonomic', icon: '🌿', desc: 'Calming, reduces eye strain' },
@@ -126,21 +131,33 @@ export default function Navbar({
               className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
                 isBackendHealthy
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  : isCloud
+                  ? 'bg-sky-50 text-sky-700 border-sky-200'
                   : 'bg-rose-50 text-rose-700 border-rose-200 animate-pulse'
               }`}
               title={
                 isBackendHealthy
                   ? 'FastAPI Backend Online (127.0.0.1:8000)'
-                  : 'Backend Offline'
+                  : isCloud
+                  ? 'Running in Cloud Mode (All 60 Quizzes, 32 Topics & Dashboard active)'
+                  : 'Backend Offline - Start FastAPI on http://127.0.0.1:8000'
               }
             >
               <span
                 className={`w-2 h-2 rounded-full ${
-                  isBackendHealthy ? 'bg-emerald-500' : 'bg-rose-500'
+                  isBackendHealthy
+                    ? 'bg-emerald-500'
+                    : isCloud
+                    ? 'bg-sky-500'
+                    : 'bg-rose-500'
                 }`}
               />
               <span className="text-[11px]">
-                {isBackendHealthy ? 'API Active' : 'API Offline'}
+                {isBackendHealthy
+                  ? 'API Active'
+                  : isCloud
+                  ? 'Cloud Mode'
+                  : 'API Offline'}
               </span>
             </div>
 
