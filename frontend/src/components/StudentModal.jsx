@@ -82,14 +82,23 @@ export default function StudentModal({
       onClose();
     } catch (err) {
       if (err.message && err.message.includes('Unable to connect')) {
-        const offlineProfile = {
-          id: Number(switchId) || 1,
-          name: `Student #${switchId || 1}`,
-          level: 'Beginner',
-          difficulty: 'Easy',
-          xp: 0,
-          streak: 1,
-        };
+        const targetId = Number(switchId) || 1;
+        const savedStudent = localStorage.getItem(`python_buddy_student_${targetId}`);
+        let offlineProfile = null;
+        if (savedStudent) {
+          try { offlineProfile = JSON.parse(savedStudent); } catch {}
+        }
+        if (!offlineProfile) {
+          offlineProfile = {
+            id: targetId,
+            name: `Student #${targetId}`,
+            level: 'Beginner',
+            difficulty: 'Easy',
+            xp: 0,
+            streak: 1,
+            sessions_completed: 0,
+          };
+        }
         onSelectStudent(offlineProfile);
         onClose();
         return;

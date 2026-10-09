@@ -52,16 +52,33 @@ export default function App() {
       }
 
       // Fetch student profile
-      const studentData = await getStudent(studentId);
-      setStudent(studentData);
-      localStorage.setItem(STORAGE_STUDENT_ID_KEY, studentData.id);
+      try {
+        const studentData = await getStudent(studentId);
+        setStudent(studentData);
+        localStorage.setItem(STORAGE_STUDENT_ID_KEY, studentData.id);
+        localStorage.setItem(`python_buddy_student_${studentData.id}`, JSON.stringify(studentData));
+      } catch (studentErr) {
+        // Fallback to cached student from localStorage if backend is unreachable
+        const cachedStudent = localStorage.getItem(`python_buddy_student_${studentId}`);
+        if (cachedStudent) {
+          try { setStudent(JSON.parse(cachedStudent)); } catch {}
+        }
+      }
 
       // Fetch personalized recommendation
-      const recData = await getRecommendation(studentData.id);
-      setRecommendation(recData);
+      try {
+        const recData = await getRecommendation(studentId);
+        setRecommendation(recData);
+        localStorage.setItem(`python_buddy_rec_${studentId}`, JSON.stringify(recData));
+      } catch (recErr) {
+        // Fallback to cached recommendation from localStorage if backend is unreachable
+        const cachedRec = localStorage.getItem(`python_buddy_rec_${studentId}`);
+        if (cachedRec) {
+          try { setRecommendation(JSON.parse(cachedRec)); } catch {}
+        }
+      }
     } catch (err) {
       console.error('Error loading student profile:', err);
-      // If student not found or backend offline
       if (err.message && err.message.includes('Unable to connect')) {
         setIsBackendHealthy(false);
       }
@@ -99,35 +116,108 @@ export default function App() {
   // Handle quiz answer submission & update
   const handleQuizCompleted = async (evalResult) => {
     if (!student?.id) return;
-    // Re-fetch profile and recommendation to refresh dashboard metrics immediately
+
+    // 1. Calculate updated local metrics immediately so UI responds in real-time
+    const isCorrect = evalResult.result === 'Correct';
+    const xpGained = evalResult.xp_earned || (isCorrect ? 25 : 5);
+
+    let currentXp = (student.xp || 0) + xpGained;
+    let currentSessions = (student.sessions_completed || 0) + 1;
+
+    const updatedStudent = {
+      ...student,
+      xp: currentXp,
+      sessions_completed: currentSessions,
+    };
+    setStudent(updatedStudent);
     try {
-      const [updatedProfile, updatedRec] = await Promise.all([
+      localStorage.setItem(`python_buddy_student_${student.id}`, JSON.stringify(updatedStudent));
+    } catch {}
+
+    // 2. Update recommendation & analytics in real time
+    setRecommendation((prevRec) => {
+      const prev = prevRec || {
+        total_questions: 0,
+        correct_answers: 0,
+        score_percentage: 0,
+        strengths: [],
+        weaknesses: [],
+        topic_breakdown: {},
+      };
+
+      const newTotal = (prev.total_questions || 0) + 1;
+      const newCorrect = (prev.correct_answers || 0) + (isCorrect ? 1 : 0);
+      const newScore = Math.round((newCorrect / newTotal) * 100);
+
+      const topic = evalResult.topic || 'Python Fundamentals';
+      const topicMap = { ...(prev.topic_breakdown || {}) };
+      const currentData = topicMap[topic] || { total: 0, correct: 0 };
+      topicMap[topic] = {
+        total: currentData.total + 1,
+        correct: currentData.correct + (isCorrect ? 1 : 0),
+      };
+
+      const strengths = Object.keys(topicMap).filter((t) => {
+        const s = topicMap[t];
+        return (s.correct / s.total) >= 0.7;
+      });
+
+      const weaknesses = Object.keys(topicMap).filter((t) => {
+        const s = topicMap[t];
+        return (s.correct / s.total) < 0.7;
+      });
+
+      const newRec = {
+        ...prev,
+        total_questions: newTotal,
+        correct_answers: newCorrect,
+        score_percentage: newScore,
+        total_xp: currentXp,
+        strengths,
+        weaknesses,
+        topic_breakdown: topicMap,
+        recommendation: weaknesses.length > 0
+          ? `Targeted focus: Practice more questions on ${weaknesses[0]} to raise accuracy above 70%.`
+          : `Outstanding work! You have ${newScore}% accuracy across ${newTotal} question${newTotal > 1 ? 's' : ''}. Keep going!`,
+        next_lesson: weaknesses.length > 0 ? weaknesses[0] : (strengths[0] || 'Variables'),
+      };
+
+      try {
+        localStorage.setItem(`python_buddy_rec_${student.id}`, JSON.stringify(newRec));
+      } catch {}
+
+      return newRec;
+    });
+
+    // 3. If backend is available, also sync to database
+    try {
+      const [remoteProfile, remoteRec] = await Promise.all([
         getStudent(student.id),
         getRecommendation(student.id),
       ]);
-      setStudent(updatedProfile);
-      setRecommendation(updatedRec);
-    } catch (err) {
-      console.warn('Backend update unavailable, updating XP locally:', err);
-      if (evalResult?.xp_earned) {
-        setStudent((prev) =>
-          prev
-            ? {
-                ...prev,
-                xp: (prev.xp || 0) + evalResult.xp_earned,
-                sessions_completed: (prev.sessions_completed || 0) + 1,
-              }
-            : prev
-        );
-      }
-    }
+      setStudent(remoteProfile);
+      setRecommendation(remoteRec);
+    } catch {}
   };
 
   // Switch student
   const handleSelectStudent = (newStudent) => {
-    setStudent(newStudent);
-    localStorage.setItem(STORAGE_STUDENT_ID_KEY, newStudent.id);
-    loadStudentData(newStudent.id);
+    // Check for cached local data to preserve accumulated XP and stats
+    const cachedStudent = localStorage.getItem(`python_buddy_student_${newStudent.id}`);
+    const resolvedStudent = cachedStudent ? JSON.parse(cachedStudent) : newStudent;
+    setStudent(resolvedStudent);
+    localStorage.setItem(STORAGE_STUDENT_ID_KEY, resolvedStudent.id);
+
+    const cachedRec = localStorage.getItem(`python_buddy_rec_${resolvedStudent.id}`);
+    if (cachedRec) {
+      try {
+        setRecommendation(JSON.parse(cachedRec));
+      } catch {}
+    } else {
+      setRecommendation(null);
+    }
+
+    loadStudentData(resolvedStudent.id);
   };
 
   // Navigations with context

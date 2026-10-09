@@ -21,12 +21,12 @@ export default function ProgressPage({
   onStartPractice,
   onStartQuiz,
 }) {
-  const isNewStudent = (recommendation?.total_questions ?? 0) === 0;
-  const score = isNewStudent ? 0 : (recommendation?.score_percentage ?? 0);
-  const totalQuestions = isNewStudent ? 0 : (recommendation?.total_questions ?? 0);
-  const correctAnswers = isNewStudent ? 0 : (recommendation?.correct_answers ?? 0);
-  const incorrectAnswers = totalQuestions - correctAnswers;
-  const totalXp = isNewStudent ? 0 : (student?.xp ?? recommendation?.total_xp ?? 0);
+  const totalQuestions = recommendation?.total_questions ?? (student?.sessions_completed ?? 0);
+  const totalXp = student?.xp ?? recommendation?.total_xp ?? 0;
+  const isNewStudent = totalQuestions === 0 && totalXp === 0;
+  const score = isNewStudent ? 0 : (recommendation?.score_percentage ?? (totalQuestions > 0 ? 100 : 0));
+  const correctAnswers = isNewStudent ? 0 : (recommendation?.correct_answers ?? totalQuestions);
+  const incorrectAnswers = Math.max(0, totalQuestions - correctAnswers);
   const strengths = recommendation?.strengths ?? [];
   const weaknesses = recommendation?.weaknesses ?? [];
 

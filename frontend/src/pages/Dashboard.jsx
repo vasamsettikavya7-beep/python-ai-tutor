@@ -24,11 +24,11 @@ export default function Dashboard({
   onStartFresh,
   loading,
 }) {
-  const isNewStudent = (recommendation?.total_questions ?? 0) === 0;
-  const score = isNewStudent ? 0 : (recommendation?.score_percentage ?? 0);
-  const totalQuestions = isNewStudent ? 0 : (recommendation?.total_questions ?? 0);
-  const correctAnswers = isNewStudent ? 0 : (recommendation?.correct_answers ?? 0);
-  const xp = isNewStudent ? 0 : (student?.xp ?? recommendation?.total_xp ?? 0);
+  const totalQuestions = recommendation?.total_questions ?? (student?.sessions_completed ?? 0);
+  const xp = student?.xp ?? recommendation?.total_xp ?? 0;
+  const isNewStudent = totalQuestions === 0 && xp === 0;
+  const score = isNewStudent ? 0 : (recommendation?.score_percentage ?? (totalQuestions > 0 ? 100 : 0));
+  const correctAnswers = isNewStudent ? 0 : (recommendation?.correct_answers ?? totalQuestions);
   const strengths = recommendation?.strengths ?? [];
   const weaknesses = recommendation?.weaknesses ?? [];
 
@@ -133,17 +133,17 @@ export default function Dashboard({
 
           <StatCard
             title="Total XP"
-            value={isNewStudent ? 0 : xp}
-            subtitle={isNewStudent ? 'Solve quizzes to earn XP' : 'Earned from lessons & quizzes'}
+            value={xp}
+            subtitle={xp === 0 ? 'Solve quizzes to earn XP' : 'Earned from lessons & quizzes'}
             icon={Zap}
             color="amber"
-            badge={isNewStudent ? 'Tier 1' : `+${totalQuestions * 25} Potential`}
+            badge={xp === 0 ? 'Tier 1' : `+${totalQuestions * 25} Potential`}
           />
 
           <StatCard
             title="Questions Solved"
-            value={isNewStudent ? 0 : totalQuestions}
-            subtitle={isNewStudent ? '0 quizzes completed' : `${correctAnswers} correct answers`}
+            value={totalQuestions}
+            subtitle={totalQuestions === 0 ? '0 quizzes completed' : `${correctAnswers} of ${totalQuestions} correct`}
             icon={CheckCircle2}
             color="emerald"
           />

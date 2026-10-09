@@ -126,6 +126,7 @@ export default function Quiz({
       // Construct display evaluation reflecting the real question's correctOption & explanation
       const displayEvaluation = {
         ...response,
+        topic: currentQuestion.topic,
         student_answer: selectedAnswer,
         correct_answer: currentQuestion.correctOption,
         result: isCorrect ? 'Correct' : 'Incorrect',
@@ -155,6 +156,7 @@ export default function Quiz({
       // Offline fallback: calculate evaluation locally so quizzes work 100% on cloud deployments
       const fallbackEvaluation = {
         student_id: student?.id || 1,
+        topic: currentQuestion.topic,
         student_answer: selectedAnswer,
         correct_answer: currentQuestion.correctOption,
         result: isCorrect ? 'Correct' : 'Incorrect',
