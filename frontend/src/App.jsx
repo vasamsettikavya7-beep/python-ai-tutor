@@ -108,7 +108,18 @@ export default function App() {
       setStudent(updatedProfile);
       setRecommendation(updatedRec);
     } catch (err) {
-      console.error('Error updating stats after quiz:', err);
+      console.warn('Backend update unavailable, updating XP locally:', err);
+      if (evalResult?.xp_earned) {
+        setStudent((prev) =>
+          prev
+            ? {
+                ...prev,
+                xp: (prev.xp || 0) + evalResult.xp_earned,
+                sessions_completed: (prev.sessions_completed || 0) + 1,
+              }
+            : prev
+        );
+      }
     }
   };
 

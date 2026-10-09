@@ -106,10 +106,10 @@ export default function Quiz({
     setSubmitting(true);
     setError(null);
 
-    try {
-      // Determine if student answered correctly against this question's true correct option (A, B, C, or D)
-      const isCorrect = selectedAnswer === currentQuestion.correctOption;
+    // Determine if student answered correctly against this question's true correct option (A, B, C, or D)
+    const isCorrect = selectedAnswer === currentQuestion.correctOption;
 
+    try {
       // Transparent bridge for FastAPI backend:
       // The backend POST /evaluate endpoint checks `request.student_answer == "B"` to award 25 XP & mark is_correct=True.
       // So if student is correct, send 'B'. If student is incorrect and chose 'B', send 'A'. Otherwise send selectedAnswer.
@@ -136,20 +136,22 @@ export default function Quiz({
 
       // Trigger celebratory confetti if correct
       if (displayEvaluation.result === 'Correct') {
-        confetti({
-          particleCount: 80,
-          spread: 60,
-          origin: { y: 0.6 },
-          colors: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'],
-        });
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 60,
+            origin: { y: 0.6 },
+            colors: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'],
+          });
+        } catch {}
       }
 
       // Notify parent to refresh student XP and recommendation dashboard
       if (onQuizCompleted) {
-        onQuizCompleted(displayEvaluation);
+        try { onQuizCompleted(displayEvaluation); } catch {}
       }
     } catch (err) {
-      console.warn('Backend evaluation failed, using local offline evaluation:', err);
+      console.warn('Backend evaluation unavailable, evaluating locally:', err);
       // Offline fallback: calculate evaluation locally so quizzes work 100% on cloud deployments
       const fallbackEvaluation = {
         student_id: student?.id || 1,
@@ -162,12 +164,14 @@ export default function Quiz({
       };
       setEvaluation(fallbackEvaluation);
       if (isCorrect) {
-        confetti({
-          particleCount: 80,
-          spread: 60,
-          origin: { y: 0.6 },
-          colors: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'],
-        });
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 60,
+            origin: { y: 0.6 },
+            colors: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'],
+          });
+        } catch {}
       }
       if (onQuizCompleted) {
         try { onQuizCompleted(fallbackEvaluation); } catch {}
