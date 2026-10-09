@@ -47,6 +47,19 @@ export default function StudentModal({
         onClose();
       }, 700);
     } catch (err) {
+      if (err.message && err.message.includes('Unable to connect')) {
+        const offlineProfile = {
+          id: Math.floor(Math.random() * 900) + 100,
+          name: name.trim() || 'Student',
+          level,
+          difficulty,
+          xp: 0,
+          streak: 1,
+        };
+        onSelectStudent(offlineProfile);
+        onClose();
+        return;
+      }
       setError(err.message || 'Failed to register student.');
     } finally {
       setLoading(false);
@@ -68,6 +81,19 @@ export default function StudentModal({
       onSelectStudent(studentProfile);
       onClose();
     } catch (err) {
+      if (err.message && err.message.includes('Unable to connect')) {
+        const offlineProfile = {
+          id: Number(switchId) || 1,
+          name: `Student #${switchId || 1}`,
+          level: 'Beginner',
+          difficulty: 'Easy',
+          xp: 0,
+          streak: 1,
+        };
+        onSelectStudent(offlineProfile);
+        onClose();
+        return;
+      }
       setError(err.message || 'Student ID not found.');
     } finally {
       setLoading(false);
@@ -76,20 +102,16 @@ export default function StudentModal({
 
   const handleModalClose = () => {
     if (!currentStudent) {
-      registerStudent({
+      const fallbackProfile = {
+        id: 1,
         name: 'Student',
         level: 'Beginner',
         difficulty: 'Easy',
-      })
-        .then((result) => getStudent(result.student_id))
-        .then((profile) => {
-          onSelectStudent(profile);
-          onClose();
-        })
-        .catch(() => onClose());
-    } else {
-      onClose();
+        xp: 0,
+      };
+      onSelectStudent(fallbackProfile);
     }
+    onClose();
   };
 
   return (
