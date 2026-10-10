@@ -24,6 +24,7 @@ export default function App() {
   const [isBackendHealthy, setIsBackendHealthy] = useState(true);
   const [loading, setLoading] = useState(true);
   const [studentModalOpen, setStudentModalOpen] = useState(false);
+  const [studentModalMode, setStudentModalMode] = useState('switch');
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem(STORAGE_THEME_KEY) || 'ambient';
   });
@@ -132,6 +133,12 @@ export default function App() {
     setStudent(updatedStudent);
     try {
       localStorage.setItem(`python_buddy_student_${student.id}`, JSON.stringify(updatedStudent));
+      const rawAll = localStorage.getItem('python_buddy_all_students');
+      if (rawAll) {
+        const allList = JSON.parse(rawAll);
+        const updatedList = allList.map((s) => (s.id === student.id ? { ...s, xp: currentXp } : s));
+        localStorage.setItem('python_buddy_all_students', JSON.stringify(updatedList));
+      }
     } catch {}
 
     // 2. Update recommendation & analytics in real time
@@ -302,8 +309,14 @@ export default function App() {
         student={student}
         xp={student?.xp ?? recommendation?.total_xp ?? 0}
         isBackendHealthy={isBackendHealthy}
-        onOpenStudentModal={() => setStudentModalOpen(true)}
-        onStartFresh={() => setStudentModalOpen(true)}
+        onOpenStudentModal={() => {
+          setStudentModalMode('switch');
+          setStudentModalOpen(true);
+        }}
+        onStartFresh={() => {
+          setStudentModalMode('register');
+          setStudentModalOpen(true);
+        }}
         onRefresh={handleManualRefresh}
         currentTheme={theme}
         onThemeChange={handleThemeChange}
@@ -365,7 +378,10 @@ export default function App() {
                 onStartPractice={handleStartPractice}
                 onStartLesson={handleStartLesson}
                 onStartQuiz={handleStartQuiz}
-                onStartFresh={() => setStudentModalOpen(true)}
+                onStartFresh={() => {
+                  setStudentModalMode('register');
+                  setStudentModalOpen(true);
+                }}
                 loading={loading}
               />
             )}
@@ -421,6 +437,7 @@ export default function App() {
         currentStudent={student}
         onSelectStudent={handleSelectStudent}
         onStartFresh={handleStartFreshStudent}
+        initialMode={studentModalMode}
       />
     </div>
   );
