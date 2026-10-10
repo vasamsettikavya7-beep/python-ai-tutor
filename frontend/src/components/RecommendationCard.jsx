@@ -6,20 +6,14 @@ import {
   AlertCircle,
   Zap,
   ArrowRight,
-  ArrowDown,
   Sparkles,
   ChevronLeft,
   ChevronRight,
   Filter,
   Check,
   Bot,
-  Lock,
   Play,
   RotateCcw,
-  GitBranch,
-  Layers,
-  Award,
-  Flame,
 } from 'lucide-react';
 import LessonModal from './LessonModal';
 
@@ -376,84 +370,6 @@ export const CURRICULUM_TOPICS = [
   },
 ];
 
-// Flowchart Stage Definitions
-export const FLOWCHART_STAGES = [
-  {
-    id: 'fundamentals',
-    name: 'Fundamentals',
-    fullName: 'Core Fundamentals',
-    icon: '🌱',
-    topics: [
-      'Variables',
-      'Data Types',
-      'Strings',
-      'Operators',
-      'Conditions',
-      'Loops',
-      'Functions',
-      'Scope',
-    ],
-  },
-  {
-    id: 'datastructures',
-    name: 'Data Structures',
-    fullName: 'Data Structures',
-    icon: '📦',
-    topics: [
-      'Lists',
-      'Tuples',
-      'Dictionaries',
-      'Sets',
-      'List Comprehensions',
-    ],
-  },
-  {
-    id: 'intermediate',
-    name: 'Intermediate',
-    fullName: 'Intermediate Python',
-    icon: '⚙️',
-    topics: [
-      'Lambda Functions',
-      'Exception Handling',
-      'File I/O',
-      'Modules & Imports',
-      'Closures',
-      'Built-in Functions',
-      'Functional Programming',
-      'Regular Expressions (Regex)',
-    ],
-  },
-  {
-    id: 'oop',
-    name: 'OOP',
-    fullName: 'Object-Oriented Programming',
-    icon: '🏛️',
-    topics: [
-      'OOP',
-      'Classes & Objects',
-      'Inheritance & Polymorphism',
-      'OOP / Dunder Methods',
-      'OOP / Optimization',
-    ],
-  },
-  {
-    id: 'advanced',
-    name: 'Advanced',
-    fullName: 'Advanced Python',
-    icon: '🚀',
-    topics: [
-      'Decorators',
-      'Generators',
-      'Context Managers',
-      'Async / Await',
-      'Concurrency',
-      'Memory Management',
-      'Metaclasses',
-      'Standard Library',
-    ],
-  },
-];
-
 export default function RecommendationCard({
   student,
   recommendation,
@@ -467,7 +383,6 @@ export default function RecommendationCard({
 }) {
   const [selectedLessonTopic, setSelectedLessonTopic] = useState(null);
   const [categoryFilter, setCategoryFilter] = useState('All');
-  const [activeStageId, setActiveStageId] = useState('fundamentals');
   const [currentSlide, setCurrentSlide] = useState(1);
 
   const ITEMS_PER_SLIDE = 5;
@@ -484,20 +399,7 @@ export default function RecommendationCard({
   })();
 
   // 1. Compute Learned Topics from Quiz Attempts
-  const learnedMap = {};
-  Object.keys(topicBreakdown).forEach((topicName) => {
-    const stats = topicBreakdown[topicName];
-    const acc = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
-    learnedMap[topicName.toLowerCase()] = {
-      total: stats.total,
-      correct: stats.correct,
-      accuracy: acc,
-      isMastered: acc >= 70,
-      xpEarned: stats.correct * 25,
-    };
-  });
-
-  const learnedTopicsList = Object.keys(topicBreakdown).map((topicName) => {
+  const learnedTopics = Object.keys(topicBreakdown).map((topicName) => {
     const stats = topicBreakdown[topicName];
     const curriculumItem = CURRICULUM_TOPICS.find(
       (c) => c.topic.toLowerCase() === topicName.toLowerCase()
@@ -513,23 +415,28 @@ export default function RecommendationCard({
     };
 
     const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+    const isMastered = accuracy >= 70;
+
     return {
       ...curriculumItem,
       total: stats.total,
       correct: stats.correct,
       accuracy,
-      isMastered: accuracy >= 70,
+      isMastered,
       xpEarned: stats.correct * 25,
     };
   });
 
-  const masteredCount = learnedTopicsList.filter((t) => t.isMastered).length;
+  // Sort learned topics: Mastered first, then by accuracy descending
+  learnedTopics.sort((a, b) => b.accuracy - a.accuracy);
+
+  const masteredCount = learnedTopics.filter((t) => t.isMastered).length;
   const totalTopics = CURRICULUM_TOPICS.length;
   const progressPercent = Math.min(100, Math.round((masteredCount / totalTopics) * 100));
 
   // 2. Compute Next Lessons to Learn
-  const needsReviewTopics = learnedTopicsList.filter((t) => !t.isMastered);
-  const masteredNames = new Set(learnedTopicsList.filter((t) => t.isMastered).map((t) => t.topic.toLowerCase()));
+  const needsReviewTopics = learnedTopics.filter((t) => !t.isMastered);
+  const masteredNames = new Set(learnedTopics.filter((t) => t.isMastered).map((t) => t.topic.toLowerCase()));
   const needsReviewNames = new Set(needsReviewTopics.map((t) => t.topic.toLowerCase()));
 
   const upcomingUnattempted = CURRICULUM_TOPICS.filter(
@@ -560,42 +467,6 @@ export default function RecommendationCard({
     setCurrentSlide(1);
   };
 
-  // 4. Flowchart Active Stage Data
-  const currentFlowStage = FLOWCHART_STAGES.find((s) => s.id === activeStageId) || FLOWCHART_STAGES[0];
-  const stageTopicsData = currentFlowStage.topics.map((tName, index) => {
-    const cItem = CURRICULUM_TOPICS.find((c) => c.topic.toLowerCase() === tName.toLowerCase()) || {
-      topic: tName,
-      title: tName,
-      summary: '',
-      category: currentFlowStage.fullName,
-      xpReward: 25,
-    };
-
-    const userStats = learnedMap[tName.toLowerCase()];
-    let status = 'upcoming'; // 'mastered' | 'needs_review' | 'active' | 'upcoming'
-
-    if (userStats) {
-      status = userStats.isMastered ? 'mastered' : 'needs_review';
-    } else {
-      // If it's the very first unattempted topic across the sequence, mark as active
-      const firstUnattempted = CURRICULUM_TOPICS.find(
-        (c) => !learnedMap[c.topic.toLowerCase()]
-      );
-      if (firstUnattempted && firstUnattempted.topic.toLowerCase() === tName.toLowerCase()) {
-        status = 'active';
-      }
-    }
-
-    return {
-      ...cItem,
-      stepNumber: index + 1,
-      stats: userStats,
-      status,
-    };
-  });
-
-  const stageMasteredCount = stageTopicsData.filter((t) => t.status === 'mastered').length;
-
   return (
     <div className="space-y-6">
       {/* Top Learning Engine Header & Mastery Bar */}
@@ -617,11 +488,11 @@ export default function RecommendationCard({
               Tailored Roadmap for {student?.name || 'New Student'}
             </h3>
             <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
-              {learnedTopicsList.length === 0
-                ? 'Welcome! Follow the flowchart on the left to complete your skills sequentially, and use the 5-topic slide navigator on the right.'
+              {learnedTopics.length === 0
+                ? 'Welcome! As you solve quiz questions and explore lessons, your skills roadmap lights up with mastery percentages and XP.'
                 : typeof recommendation === 'string'
                 ? recommendation
-                : recommendation?.recommendation || `You have mastered ${masteredCount} of ${totalTopics} curriculum topics. Continue advancing along the flowchart.`}
+                : recommendation?.recommendation || `You have mastered ${masteredCount} topic${masteredCount !== 1 ? 's' : ''}. Follow the sequential lesson list below to continue advancing.`}
             </p>
           </div>
 
@@ -669,271 +540,237 @@ export default function RecommendationCard({
         </div>
       </div>
 
-      {/* Main Grid: Skills Flowchart Roadmap & Next Lessons List */}
+      {/* Main Grid: Skills Learned Roadmap & Next Lessons List */}
       <div className="grid lg:grid-cols-12 gap-6 items-start">
         {/* ============================================================== */}
-        {/* LEFT COLUMN: 🗺️ SKILLS ROADMAP FLOWCHART */}
+        {/* LEFT COLUMN: 🗺️ SKILLS LEARNED ROADMAP */}
         {/* ============================================================== */}
         <div className="lg:col-span-5 bg-gradient-to-br from-white to-slate-50 rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
           <div>
-            {/* Flowchart Header */}
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700 shadow-2xs">
-                  <GitBranch className="w-5 h-5 text-emerald-600" />
+                  <Compass className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
-                  <h4 className="font-extrabold text-slate-900 text-base sm:text-lg flex items-center gap-1.5">
-                    <span>Skills Flowchart</span>
-                    <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                      Live Diagram
-                    </span>
+                  <h4 className="font-extrabold text-slate-900 text-base sm:text-lg">
+                    Skills Roadmap
                   </h4>
                   <span className="text-[11px] font-bold text-slate-500">
-                    Visual milestone track for {student?.name || 'You'}
+                    What {student?.name || 'you'} have learned
                   </span>
                 </div>
               </div>
-
               <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                {stageMasteredCount}/{currentFlowStage.topics.length} Stage Done
+                {learnedTopics.length} {learnedTopics.length === 1 ? 'Skill' : 'Skills'} Tracked
               </span>
             </div>
 
-            {/* Stage Selector Pills */}
-            <div className="mb-5 overflow-x-auto pb-1 scrollbar-none">
-              <div className="flex items-center gap-1.5 min-w-max">
-                {FLOWCHART_STAGES.map((stg) => {
-                  const isActive = stg.id === activeStageId;
-                  const stgMastered = stg.topics.filter(
-                    (t) => learnedMap[t.toLowerCase()]?.isMastered
-                  ).length;
-
-                  return (
-                    <button
-                      key={stg.id}
-                      onClick={() => setActiveStageId(stg.id)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                        isActive
-                          ? 'bg-emerald-600 text-white shadow-xs'
-                          : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span>{stg.icon}</span>
-                      <span>{stg.name}</span>
-                      <span
-                        className={`text-[10px] font-extrabold px-1.5 py-0.2 rounded-full ${
-                          isActive
-                            ? 'bg-emerald-700/80 text-white'
-                            : 'bg-slate-100 text-slate-500'
-                        }`}
-                      >
-                        {stgMastered}/{stg.topics.length}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* FLOWCHART DIAGRAM CANVAS */}
-            <div className="bg-slate-50/70 rounded-2xl border border-slate-200 p-4 space-y-0 relative">
-              {/* Terminal Start Node */}
-              <div className="flex justify-center mb-1">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900 text-white text-xs font-extrabold shadow-sm border border-slate-700">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>START: {currentFlowStage.fullName}</span>
-                </div>
-              </div>
-
-              {/* Connecting line to first node */}
-              <div className="flex flex-col items-center my-0.5 select-none">
-                <div className="w-0.5 h-3 bg-slate-300" />
-                <ArrowDown className="w-3.5 h-3.5 text-slate-400 -mt-1" />
-              </div>
-
-              {/* Sequential Flowchart Nodes */}
-              <div className="space-y-0">
-                {stageTopicsData.map((node, index) => {
-                  const isLast = index === stageTopicsData.length - 1;
-
-                  return (
-                    <div key={node.topic} className="flex flex-col items-center">
-                      {/* Flowchart Node Box */}
-                      <div
-                        className={`w-full rounded-2xl p-3.5 border transition-all ${
-                          node.status === 'mastered'
-                            ? 'bg-emerald-50/70 border-emerald-300 shadow-2xs'
-                            : node.status === 'needs_review'
-                            ? 'bg-amber-50/70 border-amber-300 shadow-2xs'
-                            : node.status === 'active'
-                            ? 'bg-blue-50 border-2 border-blue-500 shadow-md ring-2 ring-blue-100'
-                            : 'bg-white border-slate-200 opacity-80'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-2.5">
-                            {/* Step Badge */}
-                            <div
-                              className={`w-7 h-7 rounded-xl font-extrabold text-xs flex items-center justify-center shrink-0 mt-0.5 ${
-                                node.status === 'mastered'
-                                  ? 'bg-emerald-500 text-white shadow-2xs'
-                                  : node.status === 'needs_review'
-                                  ? 'bg-amber-400 text-slate-950 shadow-2xs'
-                                  : node.status === 'active'
-                                  ? 'bg-blue-600 text-white shadow-2xs animate-pulse'
-                                  : 'bg-slate-100 text-slate-400 border border-slate-200'
-                              }`}
-                            >
-                              {node.status === 'mastered' ? (
-                                <Check className="w-4 h-4 stroke-[3]" />
-                              ) : node.status === 'needs_review' ? (
-                                <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
-                              ) : node.status === 'active' ? (
-                                <Play className="w-3 h-3 fill-white" />
-                              ) : (
-                                node.stepNumber
-                              )}
-                            </div>
-
-                            <div>
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
-                                  {node.title || node.topic}
-                                </span>
-                                {node.status === 'active' && (
-                                  <span className="text-[10px] font-extrabold bg-blue-600 text-white px-2 py-0.2 rounded-full uppercase tracking-wider animate-pulse">
-                                    Current Focus
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-[11px] text-slate-500 font-medium">
-                                {node.summary || `${node.category} topic`}
-                              </p>
-                            </div>
+            {/* If Student Has Learned Skills */}
+            {learnedTopics.length > 0 ? (
+              <div className="space-y-3">
+                {learnedTopics.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 shadow-2xs transition-all space-y-2.5 group"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        {item.isMastered ? (
+                          <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                            <Check className="w-3.5 h-3.5 stroke-[3]" />
                           </div>
-
-                          {/* Node Status Badge */}
-                          <div className="text-right shrink-0">
-                            {node.status === 'mastered' ? (
-                              <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                ✅ Mastered ({node.stats?.accuracy}%)
-                              </span>
-                            ) : node.status === 'needs_review' ? (
-                              <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-200">
-                                ⚠️ Review ({node.stats?.accuracy}%)
-                              </span>
-                            ) : node.status === 'active' ? (
-                              <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
-                                🚀 Start Here
-                              </span>
-                            ) : (
-                              <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 flex items-center gap-1">
-                                <Lock className="w-2.5 h-2.5" />
-                                <span>Upcoming</span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Decision Loop for Review items */}
-                        {node.status === 'needs_review' && (
-                          <div className="mt-2.5 p-2 rounded-xl bg-amber-100/70 border border-amber-200 flex items-center justify-between text-[11px] text-amber-900">
-                            <span className="font-semibold flex items-center gap-1">
-                              <RotateCcw className="w-3 h-3 text-amber-700" />
-                              <span>Practice Loop: Needs accuracy ≥ 70%</span>
-                            </span>
-                            <button
-                              onClick={() => onStartQuiz && onStartQuiz(node.topic)}
-                              className="px-2 py-0.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-[10px] transition-colors"
-                            >
-                              Re-test Quiz
-                            </button>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                            <RotateCcw className="w-3 h-3 stroke-[2.5]" />
                           </div>
                         )}
-
-                        {/* Interactive Node Action Buttons */}
-                        <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-slate-900 text-sm leading-snug">
+                            {item.title || item.topic}
+                          </p>
                           <span className="text-[11px] text-slate-400 font-medium">
-                            {node.stats
-                              ? `${node.stats.correct}/${node.stats.total} correct • +${node.stats.xpEarned} XP`
-                              : `+${node.xpReward || 25} XP potential`}
+                            {item.categoryIcon} {item.category}
                           </span>
-
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              onClick={() => setSelectedLessonTopic(node.topic)}
-                              className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-bold transition-colors flex items-center gap-1 shadow-2xs"
-                              title="Read lesson notes"
-                            >
-                              <BookOpen className="w-3 h-3 text-blue-600" />
-                              <span>Learn</span>
-                            </button>
-
-                            <button
-                              onClick={() => onStartQuiz && onStartQuiz(node.topic)}
-                              className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-[11px] font-bold transition-colors flex items-center gap-1 shadow-2xs"
-                              title="Take quiz on this topic"
-                            >
-                              <Zap className="w-3 h-3 text-amber-300" />
-                              <span>Quiz</span>
-                            </button>
-                          </div>
                         </div>
                       </div>
 
-                      {/* Directional Connector Arrow between flowchart nodes */}
-                      {!isLast && (
-                        <div className="flex flex-col items-center my-0.5 select-none">
-                          <div className="w-0.5 h-3 bg-slate-300" />
-                          <div className="flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-white text-[9px] font-bold text-slate-400 border border-slate-200 shadow-2xs">
-                            <span>↓ step {index + 2}</span>
-                          </div>
-                          <div className="w-0.5 h-2.5 bg-slate-300" />
-                          <ArrowDown className="w-3.5 h-3.5 text-slate-400 -mt-1" />
-                        </div>
-                      )}
+                      <div className="text-right shrink-0">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border ${
+                            item.isMastered
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}
+                        >
+                          {item.isMastered ? 'Mastered' : 'Needs Review'}
+                        </span>
+                        <p className="text-[11px] font-bold text-slate-700 mt-0.5">
+                          {item.accuracy}% Accuracy
+                        </p>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
 
-              {/* Connecting line to Milestone */}
-              <div className="flex flex-col items-center my-1 select-none">
-                <div className="w-0.5 h-3 bg-slate-300" />
-                <ArrowDown className="w-3.5 h-3.5 text-slate-400 -mt-1" />
-              </div>
+                    {/* Accuracy meter bar */}
+                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          item.isMastered ? 'bg-emerald-500' : 'bg-amber-500'
+                        }`}
+                        style={{ width: `${item.accuracy}%` }}
+                      />
+                    </div>
 
-              {/* Milestone Checkpoint at End of Stage */}
-              <div className="rounded-2xl p-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white shadow-sm flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-sm font-bold">
-                    🏆
+                    {/* Stats & Actions */}
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-50">
+                      <span className="text-slate-500 font-medium text-[11px]">
+                        {item.correct}/{item.total} correct • +{item.xpEarned} XP
+                      </span>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => setSelectedLessonTopic(item.topic)}
+                          className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-colors flex items-center gap-1"
+                          title="Read concept guide"
+                        >
+                          <BookOpen className="w-3 h-3 text-blue-600" />
+                          <span>Review</span>
+                        </button>
+
+                        <button
+                          onClick={() => onStartQuiz && onStartQuiz(item.topic)}
+                          className="px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold transition-colors flex items-center gap-1"
+                          title="Take quiz to boost score"
+                        >
+                          <Zap className="w-3 h-3 text-amber-500" />
+                          <span>Quiz</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-200">
-                      Stage Checkpoint
-                    </p>
-                    <p className="text-xs font-bold text-white">
-                      {currentFlowStage.fullName} Complete
-                    </p>
-                  </div>
+                ))}
+              </div>
+            ) : (
+              /* Starter Roadmap for New Students */
+              <div className="space-y-4">
+                <div className="bg-sky-50/80 border border-sky-200 rounded-2xl p-4 text-xs text-sky-900 space-y-1.5">
+                  <p className="font-extrabold text-sm text-sky-950 flex items-center gap-1.5">
+                    <span>🚀</span> Your Journey Starts Here
+                  </p>
+                  <p className="leading-relaxed">
+                    You haven't attempted any quizzes yet. Complete your first lesson and quiz to unlock mastery badges and XP on this roadmap!
+                  </p>
                 </div>
 
-                <span className="text-xs font-extrabold px-2.5 py-1 rounded-xl bg-white/20 text-white border border-white/20">
-                  {stageMasteredCount}/{currentFlowStage.topics.length} Mastered
-                </span>
+                {/* Milestone Stepper */}
+                <div className="relative pl-6 space-y-4 border-l-2 border-dashed border-slate-200 ml-3 py-1">
+                  {/* Step 1: Ready to Start */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0.5 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-xs ring-4 ring-emerald-100">
+                      1
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-emerald-300 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <p className="font-extrabold text-slate-900 text-xs">
+                          Variables & Assignment
+                        </p>
+                        <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                          Ready to Start
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        First step in your Python mastery journey.
+                      </p>
+                      <button
+                        onClick={() => setSelectedLessonTopic('Variables')}
+                        className="mt-2 text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1"
+                      >
+                        <span>Start Lesson</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Up Next */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0.5 w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">
+                      2
+                    </div>
+                    <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-slate-700 text-xs">
+                          Data Types & Casting
+                        </p>
+                        <span className="text-[10px] font-bold text-slate-400">
+                          Up Next
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Integers, strings, booleans, and floats.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Up Next */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0.5 w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">
+                      3
+                    </div>
+                    <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-slate-700 text-xs">
+                          Conditionals & Logic
+                        </p>
+                        <span className="text-[10px] font-bold text-slate-400">
+                          Upcoming
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Branching logic with if, elif, and else.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Step 4: Up Next */}
+                  <div className="relative">
+                    <div className="absolute -left-[31px] top-0.5 w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">
+                      4
+                    </div>
+                    <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-slate-700 text-xs">
+                          Loops & Iterations
+                        </p>
+                        <span className="text-[10px] font-bold text-slate-400">
+                          Upcoming
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Bottom Roadmap Action */}
-          <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-            <span>Overall Python XP:</span>
-            <span className="font-extrabold text-amber-600 flex items-center gap-1 text-sm">
-              <Zap className="w-4 h-4 fill-amber-400" />
-              {student?.xp ?? 0} XP
-            </span>
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            {learnedTopics.length === 0 ? (
+              <button
+                onClick={() => setSelectedLessonTopic('Variables')}
+                className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
+              >
+                <Play className="w-3.5 h-3.5 fill-white" />
+                <span>Begin Lesson 1: Variables</span>
+              </button>
+            ) : (
+              <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>Total XP Earned:</span>
+                <span className="font-extrabold text-amber-600 flex items-center gap-1">
+                  <Zap className="w-3.5 h-3.5 fill-amber-400" />
+                  {student?.xp ?? 0} XP
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -981,12 +818,9 @@ export default function RecommendationCard({
 
             {/* Slide Header Indicator */}
             <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-3 px-1">
-              <span className="flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-blue-600" />
-                <span>
-                  Slide <strong className="text-slate-900">{safeSlide}</strong> of{' '}
-                  <strong className="text-slate-900">{totalSlides}</strong> (5 Topics per Slide)
-                </span>
+              <span>
+                Slide <strong className="text-slate-900">{safeSlide}</strong> of{' '}
+                <strong className="text-slate-900">{totalSlides}</strong> (5 Topics per Slide)
               </span>
 
               <span className="text-[11px] text-slate-400 font-medium">
