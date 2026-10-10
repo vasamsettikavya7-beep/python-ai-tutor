@@ -189,16 +189,15 @@ export default function Dashboard({
         </div>
 
         <RecommendationCard
-          recommendation={recommendation?.recommendation}
+          student={student}
+          recommendation={recommendation}
           nextLesson={recommendation?.next_lesson}
-          onStartPractice={() => {
-            const weakTopic = weaknesses[0] || 'Variables';
-            onStartPractice && onStartPractice(weakTopic, 'Practice');
-          }}
-          onStartLesson={() => {
-            const nextL = recommendation?.next_lesson || 'Variables';
-            onStartLesson && onStartLesson(nextL, 'Learn');
-          }}
+          strengths={strengths}
+          weaknesses={weaknesses}
+          onStartQuiz={onStartQuiz}
+          onStartLesson={onStartLesson}
+          onStartPractice={onStartPractice}
+          onNavigate={onNavigate}
         />
       </div>
     </div>

@@ -54,7 +54,7 @@ export default function Quiz({
 
   // Sync topic if passed externally
   useEffect(() => {
-    if (initialTopic && initialTopic !== 'Variables') {
+    if (initialTopic && initialTopic !== 'All') {
       setSelectedTopic(initialTopic);
     } else {
       setSelectedTopic('All');
@@ -75,17 +75,19 @@ export default function Quiz({
     return matchLevel && matchDifficulty && matchTopic;
   });
 
-  // Fallback to matching level if current combo is empty
+  // Fallback: If filtered by specific topic has no level match, show questions for that topic
   const activeQuestions = filteredQuestions.length > 0 
     ? filteredQuestions 
-    : QUESTION_BANK.filter((q) => selectedLevel === 'All' || q.level.toLowerCase() === selectedLevel.toLowerCase());
+    : (selectedTopic !== 'All'
+        ? QUESTION_BANK.filter((q) => q.topic.toLowerCase() === selectedTopic.toLowerCase())
+        : QUESTION_BANK.filter((q) => selectedLevel === 'All' || q.level.toLowerCase() === selectedLevel.toLowerCase()));
 
   const safeQuestions = activeQuestions.length > 0 ? activeQuestions : QUESTION_BANK;
   const safeIndex = Math.min(currentIndex, Math.max(0, safeQuestions.length - 1));
   const currentQuestion = safeQuestions[safeIndex] || QUESTION_BANK[0];
 
-  // Available topics for active set
-  const availableTopics = ['All', ...new Set(safeQuestions.map((q) => q.topic))];
+  // Available topics across entire question bank
+  const availableTopics = ['All', ...new Set(QUESTION_BANK.map((q) => q.topic))];
 
   const handleSelectOption = (key) => {
     if (evaluation) return;
