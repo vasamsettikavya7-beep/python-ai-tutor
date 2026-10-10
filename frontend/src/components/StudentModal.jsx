@@ -14,6 +14,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import { registerStudent, getStudent } from '../services/api';
+import { HOGWARTS_HOUSES } from '../data/hogwartsLore';
 
 const STORAGE_STUDENT_ID_KEY = 'python_buddy_student_id';
 
@@ -30,6 +31,7 @@ export default function StudentModal({
   const [name, setName] = useState('');
   const [level, setLevel] = useState('Beginner');
   const [difficulty, setDifficulty] = useState('Easy');
+  const [house, setHouse] = useState('Gryffindor');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
@@ -109,6 +111,10 @@ export default function StudentModal({
     try {
       localStorage.setItem(STORAGE_STUDENT_ID_KEY, profile.id);
       localStorage.setItem(`python_buddy_student_${profile.id}`, JSON.stringify(profile));
+      const savedHouse = localStorage.getItem(`python_wizard_house_${profile.id}`);
+      if (savedHouse) {
+        localStorage.setItem('python_wizard_house', savedHouse);
+      }
     } catch {}
     onSelectStudent(profile);
     onClose();
@@ -152,6 +158,8 @@ export default function StudentModal({
       try {
         localStorage.setItem(STORAGE_STUDENT_ID_KEY, studentProfile.id);
         localStorage.setItem(`python_buddy_student_${studentProfile.id}`, JSON.stringify(studentProfile));
+        localStorage.setItem(`python_wizard_house_${studentProfile.id}`, house);
+        localStorage.setItem('python_wizard_house', house);
       } catch {}
 
       setTimeout(() => {
@@ -173,6 +181,8 @@ export default function StudentModal({
         try {
           localStorage.setItem(STORAGE_STUDENT_ID_KEY, offlineProfile.id);
           localStorage.setItem(`python_buddy_student_${offlineProfile.id}`, JSON.stringify(offlineProfile));
+          localStorage.setItem(`python_wizard_house_${offlineProfile.id}`, house);
+          localStorage.setItem('python_wizard_house', house);
         } catch {}
         onSelectStudent(offlineProfile);
         onClose();
@@ -376,9 +386,15 @@ export default function StudentModal({
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 text-white font-bold text-sm flex items-center justify-center shadow-xs">
                       {foundProfile.name ? foundProfile.name.charAt(0).toUpperCase() : 'S'}
                     </div>
-                    <div>
-                      <div className="text-sm font-extrabold text-slate-900">
-                        {foundProfile.name}
+                    <div className="flex-1">
+                      <div className="text-sm font-extrabold text-slate-900 flex items-center justify-between">
+                        <span>{foundProfile.name}</span>
+                        {localStorage.getItem(`python_wizard_house_${foundProfile.id}`) && (
+                          <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            {HOGWARTS_HOUSES[localStorage.getItem(`python_wizard_house_${foundProfile.id}`)]?.crest}{' '}
+                            {localStorage.getItem(`python_wizard_house_${foundProfile.id}`)}
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-slate-500">
                         {foundProfile.level} • {foundProfile.difficulty || 'Easy'}
@@ -443,6 +459,39 @@ export default function StudentModal({
                     <option value="Medium">Medium</option>
                     <option value="Hard">Hard</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Hogwarts House Selection */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center justify-between">
+                  <span>Hogwarts House</span>
+                  <span className="text-[11px] font-semibold text-amber-600 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-amber-500" /> Choose Your House
+                  </span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.values(HOGWARTS_HOUSES).map((h) => {
+                    const isSelected = house === h.id;
+                    return (
+                      <button
+                        key={h.id}
+                        type="button"
+                        onClick={() => setHouse(h.id)}
+                        className={`p-2 rounded-xl border text-left transition-all flex items-center gap-2 ${
+                          isSelected
+                            ? `${h.colors.badge} border-2 border-amber-400 shadow-md ring-2 ring-amber-400/20`
+                            : 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        <span className="text-xl">{h.crest}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold truncate leading-tight">{h.name}</p>
+                          <p className="text-[10px] opacity-75 truncate">{h.trait.split(',')[0]}</p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

@@ -45,11 +45,15 @@ export default function StatCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs transition-all ${
+      className={`sparkle-card bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs transition-all relative ${
         onClick ? 'cursor-pointer hover:border-slate-300 hover:shadow-md' : ''
       }`}
     >
-      <div className="flex items-start justify-between">
+      {/* Decorative magical corner sparkle */}
+      <span className="absolute top-2.5 right-2.5 text-[11px] opacity-40 group-hover:opacity-100 group-hover:scale-125 transition-all select-none pointer-events-none">
+        ✨
+      </span>
+      <div className="flex items-start justify-between relative z-10">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
             {title}

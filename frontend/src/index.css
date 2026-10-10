@@ -63,6 +63,540 @@
   color: #f8fafc;
 }
 
+/* 5. Hogwarts School of Pythoncraft & Wizardry (Harry Potter Magical World) */
+.theme-hogwarts {
+  background-color: #060a17 !important;
+  color: #f8fafc !important;
+}
+
+.theme-hogwarts header {
+  background-color: rgba(9, 15, 29, 0.95) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.theme-hogwarts nav {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+.theme-hogwarts footer {
+  background-color: rgba(9, 15, 29, 0.95) !important;
+  border-color: rgba(245, 158, 11, 0.2) !important;
+  color: #cbd5e1 !important;
+}
+
+/* Containers & Cards in Hogwarts Theme */
+.theme-hogwarts .bg-white,
+.theme-hogwarts [class*="bg-white/"] {
+  background-color: rgba(13, 20, 39, 0.94) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.theme-hogwarts .bg-slate-50,
+.theme-hogwarts [class*="bg-slate-50"] {
+  background-color: rgba(18, 27, 50, 0.9) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+.theme-hogwarts .bg-slate-100,
+.theme-hogwarts [class*="bg-slate-100"] {
+  background-color: rgba(23, 34, 62, 0.92) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+/* Translucent Jewel-Tone Containers */
+.theme-hogwarts .bg-amber-50,
+.theme-hogwarts [class*="bg-amber-50"] {
+  background-color: rgba(55, 30, 10, 0.88) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.theme-hogwarts .bg-blue-50,
+.theme-hogwarts [class*="bg-blue-50"] {
+  background-color: rgba(15, 28, 62, 0.88) !important;
+  border-color: rgba(96, 165, 250, 0.35) !important;
+}
+
+.theme-hogwarts .bg-emerald-50,
+.theme-hogwarts [class*="bg-emerald-50"] {
+  background-color: rgba(6, 44, 28, 0.88) !important;
+  border-color: rgba(52, 211, 153, 0.35) !important;
+}
+
+.theme-hogwarts .bg-purple-50,
+.theme-hogwarts [class*="bg-purple-50"] {
+  background-color: rgba(40, 18, 64, 0.88) !important;
+  border-color: rgba(192, 132, 252, 0.35) !important;
+}
+
+.theme-hogwarts .bg-rose-50,
+.theme-hogwarts [class*="bg-rose-50"] {
+  background-color: rgba(55, 12, 24, 0.88) !important;
+  border-color: rgba(251, 113, 133, 0.35) !important;
+}
+
+/* High Contrast Headings & Titles -> Crisp White */
+.theme-hogwarts h1,
+.theme-hogwarts h2,
+.theme-hogwarts h3,
+.theme-hogwarts h4,
+.theme-hogwarts h5,
+.theme-hogwarts h6 {
+  color: #ffffff !important;
+}
+
+/* High Contrast Primary Text -> Pure White */
+.theme-hogwarts .text-slate-900,
+.theme-hogwarts .text-slate-800,
+.theme-hogwarts .text-slate-700,
+.theme-hogwarts .text-gray-900,
+.theme-hogwarts .text-gray-800,
+.theme-hogwarts .text-gray-700 {
+  color: #ffffff !important;
+}
+
+/* High Contrast Secondary Text -> Bright Silver */
+.theme-hogwarts p,
+.theme-hogwarts .text-slate-600,
+.theme-hogwarts .text-slate-500,
+.theme-hogwarts .text-gray-600,
+.theme-hogwarts .text-gray-500 {
+  color: #e2e8f0 !important;
+}
+
+.theme-hogwarts .text-slate-400,
+.theme-hogwarts .text-slate-300 {
+  color: #cbd5e1 !important;
+}
+
+/* High Contrast Jewel Text Colors (Prevents dark text on dark cards) */
+.theme-hogwarts .text-blue-900,
+.theme-hogwarts .text-blue-800,
+.theme-hogwarts .text-blue-700 {
+  color: #93c5fd !important;
+}
+
+.theme-hogwarts .text-amber-900,
+.theme-hogwarts .text-amber-800,
+.theme-hogwarts .text-amber-700 {
+  color: #fde047 !important;
+}
+
+.theme-hogwarts .text-emerald-900,
+.theme-hogwarts .text-emerald-800,
+.theme-hogwarts .text-emerald-700 {
+  color: #6ee7b7 !important;
+}
+
+.theme-hogwarts .text-purple-900,
+.theme-hogwarts .text-purple-800,
+.theme-hogwarts .text-purple-700 {
+  color: #d8b4fe !important;
+}
+
+.theme-hogwarts .text-rose-900,
+.theme-hogwarts .text-rose-800 {
+  color: #fda4af !important;
+}
+
+/* General Borders */
+.theme-hogwarts .border-slate-200,
+.theme-hogwarts .border-slate-300,
+.theme-hogwarts [class*="border-slate-200"] {
+  border-color: rgba(245, 158, 11, 0.28) !important;
+}
+
+/* Inputs, Textareas, Selects & Dropdowns */
+.theme-hogwarts input,
+.theme-hogwarts select,
+.theme-hogwarts textarea {
+  background-color: #0b1428 !important;
+  color: #ffffff !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.theme-hogwarts input::placeholder,
+.theme-hogwarts textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.theme-hogwarts select option {
+  background-color: #0b1428 !important;
+  color: #ffffff !important;
+}
+
+/* Chat Assistant Bubble */
+.theme-hogwarts .chat-bubble-assistant {
+  background-color: #0b1429 !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+.theme-hogwarts .chat-bubble-assistant .bubble-header,
+.theme-hogwarts .chat-bubble-assistant .bubble-header * {
+  color: #fde047 !important;
+  border-bottom-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+.theme-hogwarts .chat-bubble-assistant .bubble-content,
+.theme-hogwarts .chat-bubble-assistant .bubble-content * {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+}
+
+.theme-hogwarts .chat-bubble-assistant .bubble-meta,
+.theme-hogwarts .chat-bubble-assistant .bubble-meta * {
+  color: #cbd5e1 !important;
+}
+
+/* Chat Quick Prompt Pills */
+.theme-hogwarts .prompt-pill {
+  background-color: #0f1a35 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+  color: #ffffff !important;
+}
+
+.theme-hogwarts .prompt-pill:hover {
+  background-color: #1e2c52 !important;
+  border-color: rgba(245, 158, 11, 0.6) !important;
+  color: #ffffff !important;
+}
+
+.theme-hogwarts .prompt-tag {
+  color: #60a5fa !important;
+}
+
+.theme-hogwarts .prompt-text {
+  color: #f1f5f9 !important;
+}
+
+/* Chat Input Bar */
+.theme-hogwarts .chat-input-bar {
+  background-color: #080d1e !important;
+  border-top-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.theme-hogwarts .chat-text-input {
+  background-color: #0b1329 !important;
+  color: #ffffff !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.theme-hogwarts .chat-text-input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.theme-hogwarts .wand-hint-btn {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+  border-color: #f59e0b !important;
+}
+
+.theme-hogwarts .wand-hint-btn:hover {
+  background-color: #f59e0b !important;
+  color: #020617 !important;
+}
+
+.theme-hogwarts .wand-hint-icon {
+  color: #ffffff !important;
+}
+
+/* Golden buttons / badges with dark text for maximum clarity */
+.theme-hogwarts .bg-amber-400,
+.theme-hogwarts .bg-yellow-400,
+.theme-hogwarts .bg-amber-300,
+.theme-hogwarts .bg-yellow-300 {
+  color: #020617 !important;
+  font-weight: 800 !important;
+}
+
+.theme-hogwarts .bg-amber-400 *,
+.theme-hogwarts .bg-yellow-400 *,
+.theme-hogwarts .bg-amber-300 *,
+.theme-hogwarts .bg-yellow-300 * {
+  color: #020617 !important;
+}
+
+/* Hogwarts Skills Roadmap & Next Lessons High Contrast */
+.theme-hogwarts .roadmap-card,
+.theme-hogwarts .next-lessons-card {
+  background-color: rgba(13, 20, 39, 0.96) !important;
+  background-image: none !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+.theme-hogwarts .roadmap-card h4,
+.theme-hogwarts .next-lessons-card h4 {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.theme-hogwarts .roadmap-card span,
+.theme-hogwarts .next-lessons-card span {
+  color: #cbd5e1 !important;
+}
+
+/* Starter Roadmap Box ("Your Journey Starts Here") */
+.theme-hogwarts .starter-box {
+  background-color: rgba(14, 30, 62, 0.94) !important;
+  border: 1px solid rgba(56, 189, 248, 0.45) !important;
+}
+
+.theme-hogwarts .starter-box .starter-box-title,
+.theme-hogwarts .starter-box .starter-box-title * {
+  color: #38bdf8 !important;
+  font-weight: 800 !important;
+}
+
+.theme-hogwarts .starter-box .starter-box-text,
+.theme-hogwarts .starter-box .starter-box-text * {
+  color: #f1f5f9 !important;
+  font-weight: 500 !important;
+}
+
+/* Slide Lesson Items in Next Lessons */
+.theme-hogwarts .lesson-item-card {
+  background-color: rgba(18, 27, 50, 0.92) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.theme-hogwarts .lesson-item-card h5 {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.theme-hogwarts .lesson-item-card p {
+  color: #e2e8f0 !important;
+}
+
+/* Hogwarts Great Hall Floating Candles & Embers Keyframes */
+@keyframes hogwarts-float {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(0.5deg);
+  }
+  100% {
+    transform: translateY(0px) rotate(-0.5deg);
+  }
+}
+
+@keyframes hogwarts-flicker {
+  0%, 100% {
+    opacity: 0.95;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  25% {
+    opacity: 0.85;
+    transform: scale(0.96) skewX(-1deg);
+    filter: brightness(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04) skewX(1deg);
+    filter: brightness(1.1);
+  }
+  75% {
+    opacity: 0.8;
+    transform: scale(0.94) skewX(0.5deg);
+    filter: brightness(0.9);
+  }
+}
+
+@keyframes hogwarts-ember {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  85% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-260px) translateX(25px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes wand-shimmer {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6)); }
+  50% { filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.9)); }
+}
+
+.animate-wand-shimmer {
+  animation: wand-shimmer 2.5s infinite;
+}
+
+/* ------------------------------------------------------------
+   MAGICAL SPARKLING & SHINING CARD ENCHANTMENTS (HOGWARTS)
+   ------------------------------------------------------------ */
+
+/* Diagonal light beam sweeping across cards */
+@keyframes card-shine-ray {
+  0% {
+    transform: translateX(-180%) rotate(25deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 0.95;
+  }
+  70% {
+    transform: translateX(280%) rotate(25deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(280%) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+/* Pulsing stardust border aura */
+@keyframes magic-sparkle-glow {
+  0%, 100% {
+    box-shadow: 
+      0 4px 18px -2px rgba(245, 158, 11, 0.18),
+      0 0 12px 1px rgba(251, 191, 36, 0.15),
+      inset 0 0 10px rgba(254, 240, 138, 0.08);
+  }
+  50% {
+    box-shadow: 
+      0 10px 32px 2px rgba(245, 158, 11, 0.38),
+      0 0 24px 3px rgba(234, 179, 8, 0.32),
+      0 0 38px 2px rgba(168, 85, 247, 0.22),
+      inset 0 0 16px rgba(254, 240, 138, 0.2);
+  }
+}
+
+/* Shimmering iridescent border */
+@keyframes border-rainbow-shimmer {
+  0% {
+    border-color: rgba(245, 158, 11, 0.55);
+  }
+  33% {
+    border-color: rgba(168, 85, 247, 0.55);
+  }
+  66% {
+    border-color: rgba(56, 189, 248, 0.55);
+  }
+  100% {
+    border-color: rgba(245, 158, 11, 0.55);
+  }
+}
+
+/* Twinkling star sparkle */
+@keyframes star-twinkle {
+  0%, 100% {
+    transform: scale(0.7) rotate(0deg);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.3) rotate(90deg);
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(254, 240, 138, 1));
+  }
+}
+
+/* General sparkling & shining cards */
+.sparkle-card,
+.magical-card,
+.card-hover {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px -2px rgba(245, 158, 11, 0.16), 0 0 0 1px rgba(245, 158, 11, 0.2);
+}
+
+/* The animated shining light beam layer */
+.sparkle-card::before,
+.magical-card::before,
+.card-hover::before {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -20%;
+  width: 45%;
+  height: 220%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.02) 20%,
+    rgba(254, 240, 138, 0.12) 48%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(254, 240, 138, 0.12) 52%,
+    rgba(255, 255, 255, 0.02) 80%,
+    transparent 100%
+  );
+  transform: translateX(-180%) rotate(25deg);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.35;
+  animation: card-shine-ray 6.5s ease-in-out infinite;
+}
+
+/* Active card hover elevation & intense sparkling flare */
+.sparkle-card:hover,
+.magical-card:hover,
+.card-hover:hover {
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: 
+    0 18px 36px -6px rgba(245, 158, 11, 0.32),
+    0 0 25px 2px rgba(234, 179, 8, 0.38),
+    0 0 0 1.5px rgba(245, 158, 11, 0.6);
+}
+
+.sparkle-card:hover::before,
+.magical-card:hover::before,
+.card-hover:hover::before {
+  animation: card-shine-ray 2s ease-in-out infinite;
+}
+
+/* Extra sparkling glow for Hogwarts theme */
+.theme-hogwarts .sparkle-card,
+.theme-hogwarts .magical-card,
+.theme-hogwarts .card-hover,
+.theme-hogwarts .bg-white {
+  position: relative;
+  overflow: hidden;
+  animation: magic-sparkle-glow 3.5s ease-in-out infinite alternate;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+.theme-hogwarts .sparkle-card::before,
+.theme-hogwarts .magical-card::before,
+.theme-hogwarts .card-hover::before,
+.theme-hogwarts .bg-white::before {
+  content: '';
+  position: absolute;
+  top: -60%;
+  left: -20%;
+  width: 60%;
+  height: 220%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(217, 119, 6, 0.12) 20%,
+    rgba(254, 240, 138, 0.5) 48%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(254, 240, 138, 0.5) 52%,
+    rgba(147, 51, 234, 0.25) 80%,
+    transparent 100%
+  );
+  transform: translateX(-180%) rotate(25deg);
+  pointer-events: none;
+  z-index: 12;
+  animation: card-shine-ray 4.2s ease-in-out infinite;
+}
+
 /* Custom scrollbars for tutor chat and lists */
 ::-webkit-scrollbar {
   width: 6px;
@@ -80,16 +614,6 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
-}
-
-/* Custom card hover elevation effects */
-.card-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
 }
 
 /* Smooth pulse animation */

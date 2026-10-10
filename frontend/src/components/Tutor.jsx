@@ -11,9 +11,13 @@ import {
   BookOpen,
   Code2,
   AlertCircle,
+  Volume2,
+  Wand2,
 } from 'lucide-react';
 import { askTutor } from '../services/api';
 import { getTopicGuide } from '../data/topicKnowledgeBase';
+import { PROFESSOR_PERSONAS } from '../data/hogwartsLore';
+import magicalAudio from '../services/magicalAudio';
 
 export const TOPIC_GROUPS = [
   {
@@ -120,6 +124,16 @@ export default function Tutor({
   ]);
 
   const messagesEndRef = useRef(null);
+
+  const [selectedProfessor, setSelectedProfessor] = useState('pythondore');
+
+  const handleRequestSocraticHint = () => {
+    const prof = PROFESSOR_PERSONAS[selectedProfessor] || PROFESSOR_PERSONAS.pythondore;
+    const baseQuestion = question.trim() || `How does ${activeTopic} work in Python?`;
+    const hintPrompt = `[HINT ONLY - DO NOT REVEAL DIRECT CODE ANSWER] As ${prof.name}, give me a Socratic wand hint for this question: "${baseQuestion}". Guide my thinking with a riddle or clue so I can solve it myself!`;
+    magicalAudio.playSpell('wand');
+    handleSubmit(null, hintPrompt, activeTopic);
+  };
 
   useEffect(() => {
     if (initialTopic) {
@@ -236,9 +250,32 @@ export default function Tutor({
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Controls Bar: Topic & Mode Selector */}
+      {/* Controls Bar: Topic, Mode, & Professor Selector */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+          {/* Professor Persona Select */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-amber-700 mb-1.5">
+              🧙‍♂️ Hogwarts Professor
+            </label>
+            <select
+              value={selectedProfessor}
+              onChange={(e) => {
+                setSelectedProfessor(e.target.value);
+                const prof = PROFESSOR_PERSONAS[e.target.value];
+                magicalAudio.playSpell('wand');
+                magicalAudio.speak(`Greetings! I am ${prof.name}. ${prof.quote}`, e.target.value);
+              }}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-amber-300 text-sm font-semibold text-amber-950 bg-amber-50/80 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-xs"
+            >
+              {Object.values(PROFESSOR_PERSONAS).map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.avatar} {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Topic Select */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
@@ -302,19 +339,19 @@ export default function Tutor({
           </div>
 
           {/* Student Status Box */}
-          <div className="bg-blue-50/70 border border-blue-100 rounded-2xl p-3 flex items-center justify-between">
+          <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3 flex items-center justify-between">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-800">
                 Active Student
               </p>
               <p className="font-extrabold text-sm text-slate-900">
                 {student?.name || 'Not logged in'}
               </p>
               <p className="text-[11px] text-slate-500">
-                Level: {student?.level || 'Beginner'} • {student?.difficulty || 'Easy'}
+                House: <span className="font-bold text-amber-700">{student?.house || 'Gryffindor'}</span> • {student?.level || 'Beginner'}
               </p>
             </div>
-            <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
               {student?.name ? student.name.charAt(0).toUpperCase() : 'S'}
             </div>
           </div>
@@ -337,10 +374,10 @@ export default function Tutor({
                 key={idx}
                 type="button"
                 onClick={() => handlePromptClick(item)}
-                className="text-xs bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200/80 transition-all font-medium text-left"
+                className="text-xs bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200/80 transition-all font-medium text-left prompt-pill"
               >
-                <span className="font-bold text-blue-600 mr-1">[{item.topic}]</span>
-                {item.q}
+                <span className="font-bold text-blue-600 mr-1 prompt-tag">[{item.topic}]</span>
+                <span className="prompt-text">{item.q}</span>
               </button>
             ))}
           </div>
@@ -398,10 +435,10 @@ export default function Tutor({
                   className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-xs text-sm font-bold ${
                     isUser
                       ? 'bg-slate-900 text-white'
-                      : 'bg-gradient-to-tr from-blue-600 to-indigo-600 text-white'
+                      : 'bg-gradient-to-tr from-amber-600 to-purple-800 text-white text-base'
                   }`}
                 >
-                  {isUser ? <User className="w-4 h-4" /> : <span>🐍</span>}
+                  {isUser ? <User className="w-4 h-4" /> : <span>{PROFESSOR_PERSONAS[selectedProfessor]?.avatar || '🧙‍♂️'}</span>}
                 </div>
 
                 {/* Bubble */}
@@ -409,47 +446,58 @@ export default function Tutor({
                   className={`max-w-[85%] sm:max-w-[78%] rounded-3xl p-4 sm:p-5 relative ${
                     isUser
                       ? 'bg-blue-600 text-white rounded-tr-xs'
-                      : 'bg-slate-100/90 text-slate-800 border border-slate-200/80 rounded-tl-xs shadow-2xs'
+                      : 'bg-slate-100/90 text-slate-800 border border-slate-200/80 rounded-tl-xs shadow-2xs chat-bubble-assistant'
                   }`}
                 >
-                  {/* Topic tag */}
-                  {msg.topic && (
-                    <div className="flex items-center justify-between gap-4 mb-2 pb-1.5 border-b border-black/10 text-[11px] font-semibold opacity-80">
-                      <span>Topic: {msg.topic}</span>
-                      {msg.mode && <span>Mode: {msg.mode}</span>}
-                    </div>
-                  )}
+                  {/* Topic tag & Professor title */}
+                  <div className="flex items-center justify-between gap-4 mb-2 pb-1.5 border-b border-black/10 text-[11px] font-semibold opacity-80 bubble-header">
+                    <span>
+                      {isUser ? `Topic: ${msg.topic}` : PROFESSOR_PERSONAS[selectedProfessor]?.name || 'Hogwarts Professor'}
+                    </span>
+                    {msg.topic && isUser && <span>Mode: {msg.mode}</span>}
+                  </div>
 
                   {/* Message Content */}
-                  <div className="text-sm whitespace-pre-wrap leading-relaxed space-y-2">
+                  <div className="text-sm whitespace-pre-wrap leading-relaxed space-y-2 bubble-content">
                     {msg.text}
                   </div>
 
                   {/* Actions / Timestamp */}
                   <div
-                    className={`mt-2 flex items-center justify-between text-[10px] ${
+                    className={`mt-2 flex items-center justify-between text-[10px] bubble-meta ${
                       isUser ? 'text-blue-100' : 'text-slate-500'
                     }`}
                   >
                     <span>{msg.time}</span>
                     {!isUser && (
-                      <button
-                        onClick={() => handleCopy(msg.text, index)}
-                        className="hover:text-slate-800 flex items-center gap-1 font-medium ml-2 px-1 py-0.5 rounded transition-colors"
-                        title="Copy Answer"
-                      >
-                        {copiedIndex === index ? (
-                          <>
-                            <Check className="w-3 h-3 text-emerald-600" />
-                            <span className="text-emerald-700">Copied</span>
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="w-3 h-3" />
-                            <span>Copy</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => magicalAudio.speak(msg.text, selectedProfessor)}
+                          className="hover:text-amber-700 flex items-center gap-1 font-semibold px-1.5 py-0.5 rounded hover:bg-black/5 transition-colors"
+                          title="Hear Professor speak this advice"
+                        >
+                          <Volume2 className="w-3 h-3 text-amber-600" />
+                          <span>Voice 🪄</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleCopy(msg.text, index)}
+                          className="hover:text-slate-800 flex items-center gap-1 font-medium px-1 py-0.5 rounded transition-colors"
+                          title="Copy Answer"
+                        >
+                          {copiedIndex === index ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              <span className="text-emerald-700">Copied</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>Copy</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -460,15 +508,15 @@ export default function Tutor({
           {/* Loading Indicator */}
           {loading && (
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs text-sm font-bold">
-                🐍
+              <div className="w-9 h-9 rounded-2xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-xs text-base">
+                {PROFESSOR_PERSONAS[selectedProfessor]?.avatar || '🧙‍♂️'}
               </div>
               <div className="bg-slate-100 border border-slate-200 text-slate-700 rounded-3xl rounded-tl-xs px-5 py-4 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-blue-600 animate-bounce" />
-                <span className="w-2 h-2 rounded-full bg-sky-500 animate-bounce delay-100" />
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-bounce delay-200" />
+                <span className="w-2 h-2 rounded-full bg-amber-600 animate-bounce" />
+                <span className="w-2 h-2 rounded-full bg-purple-500 animate-bounce delay-100" />
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce delay-200" />
                 <span className="text-xs font-semibold text-slate-600 ml-1">
-                  Python Buddy is thinking...
+                  {PROFESSOR_PERSONAS[selectedProfessor]?.name} is formulating guidance...
                 </span>
               </div>
             </div>
@@ -478,23 +526,35 @@ export default function Tutor({
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 bg-slate-50 border-t border-slate-200">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <div className="p-4 bg-slate-50 border-t border-slate-200 chat-input-bar">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input
               type="text"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              placeholder={`Ask Python Buddy about ${activeTopic}...`}
+              placeholder={`Ask ${PROFESSOR_PERSONAS[selectedProfessor]?.name || 'Professor'} about ${activeTopic}...`}
               disabled={loading}
-              className="flex-1 px-4 py-3 rounded-2xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm font-medium disabled:opacity-60"
+              className="flex-1 px-4 py-3 rounded-2xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm font-medium disabled:opacity-60 chat-text-input"
             />
+
+            <button
+              type="button"
+              onClick={handleRequestSocraticHint}
+              disabled={loading}
+              className="px-4 py-3 rounded-2xl bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-extrabold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95 wand-hint-btn"
+              title="Request a Socratic hint without spoiling the direct solution"
+            >
+              <Wand2 className="w-4 h-4 text-amber-700 wand-hint-icon" />
+              <span>Ask for Wand Hint 🪄</span>
+            </button>
+
             <button
               type="submit"
               disabled={loading || !question.trim()}
-              className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm shadow-md shadow-blue-500/25 transition-all flex items-center gap-2 shrink-0"
+              className="px-5 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-sm shadow-md shadow-blue-500/25 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span className="hidden sm:inline">Ask Python Buddy</span>
+              <span className="hidden sm:inline">Ask Professor</span>
             </button>
           </form>
           {error && (

@@ -37,8 +37,12 @@ export default function StrengthCard({
   const Icon = config.icon;
 
   return (
-    <div className={`rounded-2xl border ${config.border} ${config.bg} p-6 shadow-xs h-full flex flex-col justify-between`}>
-      <div>
+    <div className={`sparkle-card relative overflow-hidden group rounded-2xl border ${config.border} ${config.bg} p-6 shadow-xs h-full flex flex-col justify-between`}>
+      {/* Corner magical stardust sparkle */}
+      <span className="absolute top-2.5 right-2.5 text-xs opacity-40 group-hover:opacity-100 group-hover:scale-125 transition-all select-none pointer-events-none">
+        ✨
+      </span>
+      <div className="relative z-10">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="text-xl">{config.emoji}</span>

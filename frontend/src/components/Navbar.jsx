@@ -13,8 +13,9 @@ import {
   Palette,
   Check,
   ArrowLeft,
-  Home,
 } from 'lucide-react';
+
+import magicalAudio from '../services/magicalAudio';
 
 export default function Navbar({
   activeTab,
@@ -31,13 +32,18 @@ export default function Navbar({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
 
+  const savedHouse = student?.house || (student?.id ? localStorage.getItem(`python_wizard_house_${student.id}`) : localStorage.getItem('python_wizard_house'));
+  const houseCrests = { Gryffindor: '🦁', Ravenclaw: '🦅', Hufflepuff: '🦡', Slytherin: '🐍' };
+  const houseCrest = savedHouse ? houseCrests[savedHouse] : null;
+
   const isCloud =
     typeof window !== 'undefined' &&
     window.location.hostname !== 'localhost' &&
     window.location.hostname !== '127.0.0.1';
 
   const THEMES = [
-    { id: 'ambient', name: 'Warm Sky & Amber', badge: 'Default', icon: '☀️', desc: 'Friendly, warm gradient' },
+    { id: 'hogwarts', name: 'Hogwarts Great Hall', badge: 'Hogwarts Setup', icon: '🏰', desc: 'Floating candles, castle skyline & starry night' },
+    { id: 'ambient', name: 'Warm Sky & Amber', badge: 'Light', icon: '☀️', desc: 'Friendly, warm gradient' },
     { id: 'mint', name: 'Eye Comfort Mint', badge: 'Ergonomic', icon: '🌿', desc: 'Calming, reduces eye strain' },
     { id: 'clean', name: 'Clean Modern Slate', badge: 'Minimal', icon: '⚪', desc: 'Crisp & distraction-free' },
     { id: 'dark', name: 'Dark Academy', badge: 'Night', icon: '🌙', desc: 'Deep focus for late hours' },
@@ -51,6 +57,7 @@ export default function Navbar({
   ];
 
   const handleNavClick = (id) => {
+    magicalAudio.playSpell('wand');
     setActiveTab(id);
     setMobileMenuOpen(false);
   };
@@ -84,18 +91,6 @@ export default function Navbar({
                 </p>
               </div>
             </button>
-
-            {/* Quick Home / Return to Dashboard button when navigating other pages */}
-            {activeTab !== 'dashboard' && (
-              <button
-                onClick={() => handleNavClick('dashboard')}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition-all shadow-2xs group"
-                title="Return to Student Dashboard"
-              >
-                <Home className="w-3.5 h-3.5 text-blue-600 group-hover:scale-110 transition-transform" />
-                <span>Home</span>
-              </button>
-            )}
           </div>
 
           {/* Desktop Navigation */}
@@ -176,12 +171,13 @@ export default function Navbar({
               className="flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 px-3 py-1.5 rounded-xl transition-all shadow-xs hover:border-slate-300 text-left group"
               title="Switch or Register Student"
             >
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
-                {student?.name ? student.name.charAt(0).toUpperCase() : 'S'}
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-600 via-rose-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
+                {houseCrest || (student?.name ? student.name.charAt(0).toUpperCase() : 'S')}
               </div>
               <div className="hidden sm:block text-left">
-                <div className="text-xs font-bold leading-tight text-slate-800 group-hover:text-blue-600 transition-colors">
-                  {student?.name || 'Select Student'}
+                <div className="text-xs font-bold leading-tight text-slate-800 group-hover:text-amber-700 transition-colors flex items-center gap-1">
+                  <span>{student?.name || 'Select Student'}</span>
+                  {savedHouse && <span className="text-[10px] text-amber-600 font-extrabold font-serif">[{savedHouse}]</span>}
                 </div>
                 <div className="text-[10px] text-slate-500 leading-tight">
                   {student?.level || 'Beginner'} • ID #{student?.id || '-'}

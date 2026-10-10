@@ -14,11 +14,19 @@ import {
   Bot,
   Play,
   RotateCcw,
+  Volume2,
+  Wand2,
 } from 'lucide-react';
 import LessonModal from './LessonModal';
+import magicalAudio from '../services/magicalAudio';
+import {
+  getMagicalRoadmapDialogue,
+  getMagicalNextLessonsDialogue,
+} from '../data/magicalCharacters';
+import { PYTHON_SPELLS_MAP } from '../data/hogwartsLore';
 
 // Complete 34 sequential Python topics mapped to curriculum categories
-export const CURRICULUM_TOPICS = [
+const CURRICULUM_TOPICS = [
   // 1. Core Fundamentals
   {
     topic: 'Variables',
@@ -461,16 +469,38 @@ export default function RecommendationCard({
   const endIdx = Math.min(startIdx + ITEMS_PER_SLIDE, filteredNextLessons.length);
   const visibleLessons = filteredNextLessons.slice(startIdx, endIdx);
 
+  const [isHermioneSpeaking, setIsHermioneSpeaking] = useState(false);
+
   // When changing category, reset to slide 1
   const handleCategoryChange = (cat) => {
     setCategoryFilter(cat);
     setCurrentSlide(1);
   };
 
+  // Hermione Voice Narration
+  const handleHermioneRoadmap = () => {
+    const text = getMagicalRoadmapDialogue(masteredCount, totalTopics, student?.name);
+    magicalAudio.playSpell('sparkle');
+    setIsHermioneSpeaking(true);
+    magicalAudio.speak(text, 'hermione', () => setIsHermioneSpeaking(false));
+  };
+
+  const handleHermioneNextLessons = () => {
+    const text = getMagicalNextLessonsDialogue(visibleLessons);
+    magicalAudio.playSpell('alohomora');
+    setIsHermioneSpeaking(true);
+    magicalAudio.speak(text, 'hermione', () => setIsHermioneSpeaking(false));
+  };
+
+  const handleOpenLesson = (topic) => {
+    magicalAudio.playSpell('alohomora');
+    setSelectedLessonTopic(topic);
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Learning Engine Header & Mastery Bar */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white rounded-3xl p-6 sm:p-7 shadow-md border border-slate-800 relative overflow-hidden">
+      <div className="sparkle-card bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-950 text-white rounded-3xl p-6 sm:p-7 shadow-md border border-slate-800 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 relative z-10">
@@ -545,7 +575,7 @@ export default function RecommendationCard({
         {/* ============================================================== */}
         {/* LEFT COLUMN: 🗺️ SKILLS LEARNED ROADMAP */}
         {/* ============================================================== */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-white to-slate-50 rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+        <div className="sparkle-card lg:col-span-5 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between roadmap-card">
           <div>
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
@@ -561,9 +591,24 @@ export default function RecommendationCard({
                   </span>
                 </div>
               </div>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                {learnedTopics.length} {learnedTopics.length === 1 ? 'Skill' : 'Skills'} Tracked
-              </span>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={handleHermioneRoadmap}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-2xs cursor-pointer ${
+                    isHermioneSpeaking
+                      ? 'bg-pink-100 text-pink-900 border-pink-300 ring-2 ring-pink-300/50 animate-pulse'
+                      : 'bg-white hover:bg-pink-50 text-pink-700 border-pink-200'
+                  }`}
+                  title="Hear Hermione Code-Granger explain your Marauder's Roadmap"
+                >
+                  <Volume2 className="w-3.5 h-3.5 text-pink-600" />
+                  <span>Hermione Explains Roadmap 📜</span>
+                </button>
+
+                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {learnedTopics.length} {learnedTopics.length === 1 ? 'Skill' : 'Skills'} Tracked
+                </span>
+              </div>
             </div>
 
             {/* If Student Has Learned Skills */}
@@ -586,9 +631,16 @@ export default function RecommendationCard({
                           </div>
                         )}
                         <div>
-                          <p className="font-bold text-slate-900 text-sm leading-snug">
-                            {item.title || item.topic}
-                          </p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-bold text-slate-900 text-sm leading-snug">
+                              {item.title || item.topic}
+                            </p>
+                            {PYTHON_SPELLS_MAP[item.topic] && (
+                              <span className="text-[10px] font-serif italic text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
+                                🪄 {PYTHON_SPELLS_MAP[item.topic].spellName}
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[11px] text-slate-400 font-medium">
                             {item.categoryIcon} {item.category}
                           </span>
@@ -653,11 +705,11 @@ export default function RecommendationCard({
             ) : (
               /* Starter Roadmap for New Students */
               <div className="space-y-4">
-                <div className="bg-sky-50/80 border border-sky-200 rounded-2xl p-4 text-xs text-sky-900 space-y-1.5">
-                  <p className="font-extrabold text-sm text-sky-950 flex items-center gap-1.5">
+                <div className="bg-sky-50/80 border border-sky-200 rounded-2xl p-4 text-xs text-sky-900 space-y-1.5 starter-box">
+                  <p className="font-extrabold text-sm text-sky-950 flex items-center gap-1.5 starter-box-title">
                     <span>🚀</span> Your Journey Starts Here
                   </p>
-                  <p className="leading-relaxed">
+                  <p className="leading-relaxed starter-box-text">
                     You haven't attempted any quizzes yet. Complete your first lesson and quiz to unlock mastery badges and XP on this roadmap!
                   </p>
                 </div>
@@ -777,7 +829,7 @@ export default function RecommendationCard({
         {/* ============================================================== */}
         {/* RIGHT COLUMN: 📚 NEXT LESSONS TO LEARN (5 TOPICS PER SLIDE) */}
         {/* ============================================================== */}
-        <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
+        <div className="sparkle-card lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between next-lessons-card">
           <div>
             {/* Header & Category Filters */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
@@ -795,24 +847,39 @@ export default function RecommendationCard({
                 </div>
               </div>
 
-              {/* Category Filter Pills */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                <span className="text-xs font-bold text-slate-400 shrink-0 flex items-center gap-1 mr-1">
-                  <Filter className="w-3 h-3" />
-                </span>
-                {['All', 'Core Fundamentals', 'Data Structures'].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => handleCategoryChange(cat)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 transition-all ${
-                      categoryFilter === cat
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+              {/* Category Filter Pills & Spell Voice Preview */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  onClick={handleHermioneNextLessons}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-2xs cursor-pointer ${
+                    isHermioneSpeaking
+                      ? 'bg-purple-100 text-purple-900 border-purple-300 ring-2 ring-purple-300/50 animate-pulse'
+                      : 'bg-white hover:bg-purple-50 text-purple-700 border-purple-200'
+                  }`}
+                  title="Hear Hermione explain upcoming Python spell incantations"
+                >
+                  <Volume2 className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Spell Preview 🪄</span>
+                </button>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                  <span className="text-xs font-bold text-slate-400 shrink-0 flex items-center gap-1 mr-1">
+                    <Filter className="w-3 h-3" />
+                  </span>
+                  {['All', 'Core Fundamentals', 'Data Structures'].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => handleCategoryChange(cat)}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold shrink-0 transition-all ${
+                        categoryFilter === cat
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -836,11 +903,11 @@ export default function RecommendationCard({
                 return (
                   <div
                     key={lesson.topic}
-                    className={`rounded-2xl p-4 border transition-all ${
+                    className={`sparkle-card rounded-2xl p-4 border transition-all ${
                       lesson.isReview
                         ? 'bg-amber-50/50 border-amber-200/90 hover:border-amber-300'
                         : 'bg-slate-50/70 border-slate-200 hover:border-blue-300 hover:bg-white'
-                    } shadow-2xs`}
+                    } shadow-2xs lesson-item-card`}
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
@@ -859,6 +926,12 @@ export default function RecommendationCard({
                             <h5 className="font-extrabold text-slate-900 text-sm">
                               {lesson.title || lesson.topic}
                             </h5>
+
+                            {PYTHON_SPELLS_MAP[lesson.topic] && (
+                              <span className="text-[10px] font-serif italic text-purple-800 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                                🪄 {PYTHON_SPELLS_MAP[lesson.topic].spellName}
+                              </span>
+                            )}
 
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white text-slate-600 border border-slate-200">
                               {lesson.categoryIcon} {lesson.category}
@@ -884,18 +957,21 @@ export default function RecommendationCard({
                       {/* Action Buttons: Learn Lesson & Practice Quiz */}
                       <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                         <button
-                          onClick={() => setSelectedLessonTopic(lesson.topic)}
-                          className="px-3.5 py-2 rounded-xl bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 font-extrabold text-xs shadow-2xs transition-all flex items-center gap-1.5 active:scale-95"
-                          title="Read lesson notes & runnable code"
+                          onClick={() => handleOpenLesson(lesson.topic)}
+                          className="px-3.5 py-2 rounded-xl bg-white hover:bg-amber-50 text-blue-700 hover:text-amber-800 border border-blue-200 hover:border-amber-300 font-extrabold text-xs shadow-2xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                          title="Alohomora! Read lesson grimoire & runes"
                         >
-                          <BookOpen className="w-3.5 h-3.5" />
+                          <BookOpen className="w-3.5 h-3.5 text-amber-600" />
                           <span>Learn</span>
                         </button>
 
                         <button
-                          onClick={() => onStartQuiz && onStartQuiz(lesson.topic)}
-                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 active:scale-95"
-                          title="Take quiz on this topic"
+                          onClick={() => {
+                            magicalAudio.playSpell('wand');
+                            onStartQuiz && onStartQuiz(lesson.topic);
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                          title="Take quiz before the Sorting Hat"
                         >
                           <Zap className="w-3.5 h-3.5 text-amber-300" />
                           <span>Quiz</span>

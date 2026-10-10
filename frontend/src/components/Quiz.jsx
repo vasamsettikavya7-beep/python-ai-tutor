@@ -17,9 +17,15 @@ import {
   Flame,
   Filter,
   LayoutDashboard,
+  Volume2,
+  VolumeX,
+  Wand2,
+  Lightbulb,
 } from 'lucide-react';
 import { evaluateAnswer } from '../services/api';
 import { QUESTION_BANK } from '../data/quizQuestions';
+import magicalAudio from '../services/magicalAudio';
+import { getMagicalQuizQuestionDialogue, WIZARD_CHARACTERS } from '../data/magicalCharacters';
 
 export default function Quiz({
   student,
@@ -86,11 +92,42 @@ export default function Quiz({
   const safeIndex = Math.min(currentIndex, Math.max(0, safeQuestions.length - 1));
   const currentQuestion = safeQuestions[safeIndex] || QUESTION_BANK[0];
 
+  const [isReadingQuestion, setIsReadingQuestion] = useState(false);
+  const [quizHint, setQuizHint] = useState('');
+
+  const handleRequestQuizHint = () => {
+    magicalAudio.playSpell('wand');
+    const clue = `Focus on the laws of ${currentQuestion.topic}. Read the code line by line and consider type rules and mutability.`;
+    setQuizHint(clue);
+    magicalAudio.speak(`Here is a riddle hint: ${clue}`, 'sortinghat');
+  };
+
+  // Stop speech if question index changes or component unmounts
+  useEffect(() => {
+    return () => {
+      magicalAudio.stop();
+    };
+  }, []);
+
+  const handleToggleReadQuestion = () => {
+    if (isReadingQuestion) {
+      magicalAudio.stop();
+      setIsReadingQuestion(false);
+    } else {
+      setIsReadingQuestion(true);
+      const promptText = getMagicalQuizQuestionDialogue(currentQuestion, student);
+      magicalAudio.speak(promptText, 'sortinghat', () => {
+        setIsReadingQuestion(false);
+      });
+    }
+  };
+
   // Available topics across entire question bank
   const availableTopics = ['All', ...new Set(QUESTION_BANK.map((q) => q.topic))];
 
   const handleSelectOption = (key) => {
     if (evaluation) return;
+    magicalAudio.playSparkle();
     setSelectedAnswer(key);
   };
 
@@ -107,6 +144,8 @@ export default function Quiz({
 
     setSubmitting(true);
     setError(null);
+    magicalAudio.stop();
+    setIsReadingQuestion(false);
 
     // Determine if student answered correctly against this question's true correct option (A, B, C, or D)
     const isCorrect = selectedAnswer === currentQuestion.correctOption;
@@ -137,16 +176,21 @@ export default function Quiz({
 
       setEvaluation(displayEvaluation);
 
-      // Trigger celebratory confetti if correct
+      // Trigger celebratory fanfare and voice
       if (displayEvaluation.result === 'Correct') {
+        magicalAudio.playTriumph();
+        magicalAudio.speak('Brilliant magic! Twenty-five house points awarded to your house!', 'sortinghat');
         try {
           confetti({
             particleCount: 80,
             spread: 60,
             origin: { y: 0.6 },
-            colors: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'],
+            colors: ['#f59e0b', '#3b82f6', '#10b981', '#6366f1'],
           });
         } catch {}
+      } else {
+        magicalAudio.playHex();
+        magicalAudio.speak('A tricky hex! Study the explanation below to master this charm.', 'sortinghat');
       }
 
       // Notify parent to refresh student XP and recommendation dashboard
@@ -168,14 +212,19 @@ export default function Quiz({
       };
       setEvaluation(fallbackEvaluation);
       if (isCorrect) {
+        magicalAudio.playTriumph();
+        magicalAudio.speak('Splendid spellcraft! House points awarded!', 'sortinghat');
         try {
           confetti({
             particleCount: 80,
             spread: 60,
             origin: { y: 0.6 },
-            colors: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'],
+            colors: ['#f59e0b', '#3b82f6', '#10b981', '#6366f1'],
           });
         } catch {}
+      } else {
+        magicalAudio.playHex();
+        magicalAudio.speak('A volatile reaction! Keep practicing the incantation.', 'sortinghat');
       }
       if (onQuizCompleted) {
         try { onQuizCompleted(fallbackEvaluation); } catch {}
@@ -186,6 +235,10 @@ export default function Quiz({
   };
 
   const handleNextQuestion = () => {
+    magicalAudio.stop();
+    setIsReadingQuestion(false);
+    setQuizHint('');
+    magicalAudio.playWand();
     setSelectedAnswer('');
     setEvaluation(null);
     setError(null);
@@ -193,6 +246,10 @@ export default function Quiz({
   };
 
   const handlePrevQuestion = () => {
+    magicalAudio.stop();
+    setIsReadingQuestion(false);
+    setQuizHint('');
+    magicalAudio.playWand();
     setSelectedAnswer('');
     setEvaluation(null);
     setError(null);
@@ -200,6 +257,10 @@ export default function Quiz({
   };
 
   const handleShuffle = () => {
+    magicalAudio.stop();
+    setIsReadingQuestion(false);
+    setQuizHint('');
+    magicalAudio.playSparkle();
     const randomIndex = Math.floor(Math.random() * safeQuestions.length);
     setSelectedAnswer('');
     setEvaluation(null);
@@ -210,7 +271,7 @@ export default function Quiz({
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Top Filter & Level/Difficulty Control Bar */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+      <div className="sparkle-card bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -322,7 +383,7 @@ export default function Quiz({
       </div>
 
       {/* Main Question Card */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+      <div className="sparkle-card bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
         {/* Badges: Level, Difficulty, Topic & Stepper */}
         <div className="flex flex-wrap items-center justify-between mb-4 pb-3 border-b border-slate-100 gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -366,6 +427,51 @@ export default function Quiz({
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
+        </div>
+
+        {/* The Sorting Hat Riddle Trial Banner */}
+        <div className="sparkle-card mb-6 p-4 rounded-2xl bg-gradient-to-r from-purple-950/10 via-amber-950/10 to-indigo-950/10 border border-purple-200/80 flex items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-purple-900 to-indigo-950 text-white flex items-center justify-center text-2xl shadow-sm border border-purple-400/30 shrink-0">
+              🎩
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                  The Sorting Hat of Python
+                </span>
+                <span className="text-[10px] bg-purple-100 text-purple-900 font-extrabold px-2 py-0.5 rounded-full border border-purple-200">
+                  Ancient Trial 🪄
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 line-clamp-1 mt-0.5">
+                "There is nothing hidden in your mind the Sorting Hat cannot see..."
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleToggleReadQuestion}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0 transition-all shadow-sm ${
+              isReadingQuestion
+                ? 'bg-rose-600 text-white animate-pulse'
+                : 'bg-purple-700 hover:bg-purple-800 text-white'
+            }`}
+            title={isReadingQuestion ? 'Stop Sorting Hat' : 'The Sorting Hat recites the riddle aloud'}
+          >
+            {isReadingQuestion ? (
+              <>
+                <VolumeX className="w-3.5 h-3.5" />
+                <span>Silence Hat</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-3.5 h-3.5" />
+                <span>Hat Reads Riddle 🎩</span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* Question Prompt */}
@@ -457,17 +563,42 @@ export default function Quiz({
           </div>
         )}
 
+        {/* Socratic Hint Box if active */}
+        {quizHint && (
+          <div className="mb-4 p-3.5 rounded-2xl bg-purple-50 border border-purple-200 text-xs text-purple-950 flex items-start gap-2.5 animate-in fade-in">
+            <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <span className="font-extrabold text-purple-900 block mb-0.5">
+                The Sorting Hat’s Socratic Clue 🪄:
+              </span>
+              <p className="leading-relaxed">{quizHint}</p>
+            </div>
+          </div>
+        )}
+
         {/* Action Button: Submit Answer */}
         {!evaluation && (
-          <div className="flex items-center justify-between pt-2">
-            <button
-              type="button"
-              onClick={handleNextQuestion}
-              className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1"
-            >
-              <span>Skip Question</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleNextQuestion}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1"
+              >
+                <span>Skip Question</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRequestQuizHint}
+                className="text-xs font-extrabold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                title="Request a hint without giving away the direct answer"
+              >
+                <Wand2 className="w-3.5 h-3.5 text-purple-600" />
+                <span>Ask for Socratic Hint 🪄</span>
+              </button>
+            </div>
 
             <button
               onClick={handleSubmit}
@@ -492,7 +623,7 @@ export default function Quiz({
         {/* Evaluation Result View */}
         {evaluation && (
           <div
-            className={`mt-6 p-6 rounded-2xl border-2 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
+            className={`sparkle-card mt-6 p-6 rounded-2xl border-2 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
               evaluation.result === 'Correct'
                 ? 'bg-emerald-50/70 border-emerald-300 text-emerald-950'
                 : 'bg-amber-50/70 border-amber-300 text-amber-950'
@@ -538,6 +669,8 @@ export default function Quiz({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
+                    magicalAudio.stop();
+                    magicalAudio.playWand();
                     setSelectedAnswer('');
                     setEvaluation(null);
                     setError(null);

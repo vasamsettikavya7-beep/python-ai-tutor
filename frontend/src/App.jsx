@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Home } from 'lucide-react';
 import Navbar from './components/Navbar';
 import BackendStatusBanner from './components/BackendStatusBanner';
 import StudentModal from './components/StudentModal';
@@ -7,6 +6,9 @@ import Dashboard from './pages/Dashboard';
 import QuizPage from './pages/QuizPage';
 import TutorPage from './pages/TutorPage';
 import ProgressPage from './pages/ProgressPage';
+import WandSparkles from './components/WandSparkles';
+import MagicalCompanion from './components/MagicalCompanion';
+import HogwartsSchoolBackground from './components/HogwartsSchoolBackground';
 import {
   getStudent,
   getRecommendation,
@@ -26,7 +28,9 @@ export default function App() {
   const [studentModalOpen, setStudentModalOpen] = useState(false);
   const [studentModalMode, setStudentModalMode] = useState('switch');
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem(STORAGE_THEME_KEY) || 'ambient';
+    const saved = localStorage.getItem(STORAGE_THEME_KEY);
+    if (!saved || saved === 'ambient') return 'hogwarts';
+    return saved;
   });
 
   const handleThemeChange = (newTheme) => {
@@ -280,7 +284,9 @@ export default function App() {
   };
 
   const themeClass =
-    theme === 'mint'
+    theme === 'hogwarts'
+      ? 'theme-hogwarts'
+      : theme === 'mint'
       ? 'theme-mint'
       : theme === 'clean'
       ? 'theme-clean'
@@ -293,10 +299,15 @@ export default function App() {
     document.body.className = `antialiased min-h-screen ${themeClass}`;
   }, [themeClass]);
 
-  const textColorClass = theme === 'dark' ? 'text-slate-100' : 'text-slate-800';
+  const textColorClass = theme === 'dark' || theme === 'hogwarts' ? 'text-amber-100' : 'text-slate-800';
 
   return (
-    <div className={`min-h-screen ${themeClass} ${textColorClass} flex flex-col font-sans transition-colors duration-300`}>
+    <div className={`min-h-screen ${themeClass} ${textColorClass} flex flex-col font-sans transition-colors duration-300 relative`}>
+      {/* Hogwarts School Atmosphere (Great Hall Floating Candles, Castle Silhouette, Starry Ceiling) */}
+      {theme === 'hogwarts' && (
+        <HogwartsSchoolBackground isHogwartsTheme={true} />
+      )}
+
       {/* Offline / Backend Error Banner if backend unreachable */}
       {!isBackendHealthy && (
         <BackendStatusBanner onRetry={handleManualRefresh} />
@@ -323,7 +334,7 @@ export default function App() {
       />
 
       {/* Main Page Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
         {loading && !student ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-amber-500 p-1 flex items-center justify-center text-3xl shadow-lg mb-4 animate-bounce">
@@ -338,38 +349,6 @@ export default function App() {
           </div>
         ) : (
           <>
-            {/* Prominent Back to Dashboard / Home Navigation Bar on all other pages */}
-            {activeTab !== 'dashboard' && (
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-200">
-                <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/95 hover:bg-white text-slate-800 hover:text-blue-700 font-extrabold text-xs sm:text-sm border border-slate-200/90 shadow-xs hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group"
-                  title="Return to Student Dashboard"
-                >
-                  <ArrowLeft className="w-4 h-4 text-blue-600 group-hover:-translate-x-1 transition-transform" />
-                  <span>Back to Dashboard</span>
-                </button>
-
-                <div className="flex items-center gap-2 text-xs text-slate-500 font-semibold bg-white/80 backdrop-blur-xs px-3.5 py-2 rounded-xl border border-slate-200/80 shadow-2xs">
-                  <button
-                    onClick={() => setActiveTab('dashboard')}
-                    className="flex items-center gap-1.5 text-slate-600 hover:text-blue-600 transition-colors font-bold"
-                  >
-                    <Home className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Home</span>
-                  </button>
-                  <span className="text-slate-300">/</span>
-                  <span className="font-extrabold text-blue-700">
-                    {activeTab === 'tutor'
-                      ? 'Learn / AI Tutor'
-                      : activeTab === 'quiz'
-                      ? 'Quiz Evaluation'
-                      : 'Learning Progress'}
-                  </span>
-                </div>
-              </div>
-            )}
-
             {activeTab === 'dashboard' && (
               <Dashboard
                 student={student}
@@ -429,6 +408,12 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Hogwarts Wand Sparkles Particle Effect */}
+      <WandSparkles />
+
+      {/* Floating Hogwarts Magical Character Companion & Voice Guide */}
+      <MagicalCompanion student={student} activeTab={activeTab} />
 
       {/* Student Profile Registration & Switcher Modal */}
       <StudentModal

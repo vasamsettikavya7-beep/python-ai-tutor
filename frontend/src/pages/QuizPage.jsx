@@ -26,7 +26,7 @@ export default function QuizPage({
               </button>
             )}
             <span className="text-xs font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-full">
-              Quiz Evaluation Mode
+              Interactive Quiz Challenge
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
