@@ -189,17 +189,6 @@ export default function Navbar({
               </div>
             </button>
 
-            {/* Quick New Student (0% Score) button */}
-            {onStartFresh && (
-              <button
-                onClick={onStartFresh}
-                className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-700 border border-blue-200 text-xs font-bold transition-all shadow-2xs"
-                title="Create a fresh student profile starting at 0% score and 0 XP"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                <span>+ Fresh Student (0%)</span>
-              </button>
-            )}
 
             {/* Theme Selector Popover */}
             <div className="relative">
