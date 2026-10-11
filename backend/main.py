@@ -18,10 +18,20 @@ from .schemas import (
 from .ai_service import ask_gemini
 
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title="Python Buddy AI Tutor API",
     description="AI-powered personalized Python learning assistant",
     version="1.0.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
