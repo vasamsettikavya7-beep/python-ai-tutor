@@ -80,17 +80,38 @@ export default function Dashboard({
   const wizardRank = getWizardRank(xp);
   const houseObj = HOGWARTS_HOUSES[currentHouse] || HOGWARTS_HOUSES.Gryffindor;
 
+  // Sync speaking state with magicalAudio service & clean up on unmount
+  useEffect(() => {
+    const unsub = magicalAudio.subscribe((state) => {
+      if (!state.isSpeaking) {
+        setSpeakingChar(null);
+      }
+    });
+    return () => {
+      unsub();
+      magicalAudio.stopSpeech();
+    };
+  }, []);
+
   // Voice narration triggers
   const handleHearPythondore = () => {
+    if (speakingChar === 'pythondore') {
+      magicalAudio.stopSpeech();
+      setSpeakingChar(null);
+      return;
+    }
     const text = getMagicalWelcomeDialogue(student?.name, xp, wizardRank.name);
-    magicalAudio.playSpell('lumos');
     setSpeakingChar('pythondore');
     magicalAudio.speak(text, 'pythondore', () => setSpeakingChar(null));
   };
 
   const handleHearSnape = () => {
+    if (speakingChar === 'snape') {
+      magicalAudio.stopSpeech();
+      setSpeakingChar(null);
+      return;
+    }
     const text = getMagicalSnapeDialogue(strengths, weaknesses, score);
-    magicalAudio.playSpell('potion');
     setSpeakingChar('snape');
     magicalAudio.speak(text, 'snape', () => setSpeakingChar(null));
   };

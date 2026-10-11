@@ -471,6 +471,15 @@ export default function RecommendationCard({
 
   const [isHermioneSpeaking, setIsHermioneSpeaking] = useState(false);
 
+  useEffect(() => {
+    const unsub = magicalAudio.subscribe((state) => {
+      if (!state.isSpeaking) {
+        setIsHermioneSpeaking(false);
+      }
+    });
+    return unsub;
+  }, []);
+
   // When changing category, reset to slide 1
   const handleCategoryChange = (cat) => {
     setCategoryFilter(cat);
@@ -479,15 +488,23 @@ export default function RecommendationCard({
 
   // Hermione Voice Narration
   const handleHermioneRoadmap = () => {
+    if (isHermioneSpeaking) {
+      magicalAudio.stopSpeech();
+      setIsHermioneSpeaking(false);
+      return;
+    }
     const text = getMagicalRoadmapDialogue(masteredCount, totalTopics, student?.name);
-    magicalAudio.playSpell('sparkle');
     setIsHermioneSpeaking(true);
     magicalAudio.speak(text, 'hermione', () => setIsHermioneSpeaking(false));
   };
 
   const handleHermioneNextLessons = () => {
+    if (isHermioneSpeaking) {
+      magicalAudio.stopSpeech();
+      setIsHermioneSpeaking(false);
+      return;
+    }
     const text = getMagicalNextLessonsDialogue(visibleLessons);
-    magicalAudio.playSpell('alohomora');
     setIsHermioneSpeaking(true);
     magicalAudio.speak(text, 'hermione', () => setIsHermioneSpeaking(false));
   };

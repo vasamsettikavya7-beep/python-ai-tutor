@@ -2,6 +2,19 @@
  * Magical Audio & Voice Synthesis Service for Python Buddy
  * Inspired by the Wizarding World / Hogwarts School of Witchcraft & Wizardry!
  * Powered by Web Audio API (sound fx) and Web Speech API (character voices).
+ * 
+ * Features:
+ * - Zero external audio file dependencies (100% synthesized Web Audio)
+ * - Multi-character voice profiles (Pythondore, Hermione, Snape, Sorting Hat)
+ * - Chrome / Edge / Safari / Firefox production HTTPS speech synthesis fixes:
+ *   - Voice pre-warming & async voice loading (onvoiceschanged)
+ *   - Utterance chunking to prevent Chromium's 15-second speech freeze bug
+ *   - V8 Garbage Collection prevention via window anchor
+ *   - Autoplay / AudioContext suspended state auto-resume
+ *   - SpeechSynthesis paused state keep-alive heartbeat
+ *   - Asynchronous cancel-to-speak race condition delay
+ *   - Fallback audio chime if speech synthesis is unavailable on device
+ *   - Automatic watchdog timer so UI states never freeze
  */
 
 class MagicalAudioService {
@@ -12,6 +25,12 @@ class MagicalAudioService {
     this.isMuted = false;
     this.isSpeaking = false;
     this.listeners = new Set();
+    this.voices = [];
+    this.heartbeatTimer = null;
+    this.watchdogTimer = null;
+    this.chunkQueue = [];
+    this.currentChunkIndex = 0;
+    this.activeOnEndCallback = null;
 
     // Check mute preference in localStorage
     if (typeof window !== 'undefined') {
@@ -19,20 +38,59 @@ class MagicalAudioService {
         this.isMuted = localStorage.getItem('python_wizard_muted') === 'true';
       } catch {}
     }
+
+    // Pre-warm voices
+    this.initVoices();
+  }
+
+  // Pre-load and cache system speech voices
+  initVoices() {
+    if (typeof window === 'undefined' || !this.speechSynth) return;
+
+    const loadVoices = () => {
+      try {
+        const list = this.speechSynth.getVoices();
+        if (list && list.length > 0) {
+          this.voices = list;
+        }
+      } catch {}
+    };
+
+    loadVoices();
+    if (typeof this.speechSynth.onvoiceschanged !== 'undefined') {
+      this.speechSynth.onvoiceschanged = loadVoices;
+    }
+  }
+
+  // Get freshest list of voices
+  getVoices() {
+    if (this.voices && this.voices.length > 0) return this.voices;
+    if (this.speechSynth && this.speechSynth.getVoices) {
+      try {
+        const list = this.speechSynth.getVoices();
+        if (list && list.length > 0) {
+          this.voices = list;
+          return list;
+        }
+      } catch {}
+    }
+    return [];
   }
 
   // Initialize Web Audio Context lazily on user interaction
   getAudioContext() {
     if (typeof window === 'undefined') return null;
-    if (!this.audioCtx) {
-      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtxClass) {
-        this.audioCtx = new AudioCtxClass();
+    try {
+      if (!this.audioCtx) {
+        const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtxClass) {
+          this.audioCtx = new AudioCtxClass();
+        }
       }
-    }
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume();
-    }
+      if (this.audioCtx && this.audioCtx.state === 'suspended') {
+        this.audioCtx.resume().catch(() => {});
+      }
+    } catch {}
     return this.audioCtx;
   }
 
@@ -57,7 +115,11 @@ class MagicalAudioService {
   }
 
   notify() {
-    this.listeners.forEach((fn) => fn({ isSpeaking: this.isSpeaking, isMuted: this.isMuted }));
+    this.listeners.forEach((fn) => {
+      try {
+        fn({ isSpeaking: this.isSpeaking, isMuted: this.isMuted });
+      } catch {}
+    });
   }
 
   // -------------------------------------------------------------
@@ -67,6 +129,10 @@ class MagicalAudioService {
     if (this.isMuted) return;
     const ctx = this.getAudioContext();
     if (!ctx) return;
+
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
 
     const now = ctx.currentTime;
 
@@ -162,7 +228,7 @@ class MagicalAudioService {
         break;
       }
 
-      // Correct Spell Cast / Triumph (10 Points to Gryffindor)
+      // Correct Spell Cast / Triumph
       case 'triumph': {
         const chord = [523.25, 659.25, 783.99, 1046.5]; // C major triumph
         chord.forEach((freq, idx) => {
@@ -220,18 +286,20 @@ class MagicalAudioService {
       // Albus Pythondore: Grand, deep, wise, calm, dignified
       case 'pythondore':
         return {
-          pitch: 0.88,
-          rate: 0.92,
-          langFilter: ['en-GB', 'en-UK', 'en'],
+          pitch: 0.90,
+          rate: 0.94,
+          gender: 'male',
+          lang: 'en-GB',
           prefix: 'Archmage Pythondore: ',
         };
 
       // Hermione Codegranger: Articulate, clear, brilliant, swift
       case 'hermione':
         return {
-          pitch: 1.15,
+          pitch: 1.14,
           rate: 1.02,
-          langFilter: ['en-GB', 'en-UK', 'en'],
+          gender: 'female',
+          lang: 'en-GB',
           prefix: 'Hermione Code-Granger: ',
         };
 
@@ -240,7 +308,8 @@ class MagicalAudioService {
         return {
           pitch: 0.72,
           rate: 0.82,
-          langFilter: ['en-GB', 'en-UK', 'en'],
+          gender: 'male',
+          lang: 'en-GB',
           prefix: 'Professor Snape: ',
         };
 
@@ -249,105 +318,350 @@ class MagicalAudioService {
       default:
         return {
           pitch: 0.82,
-          rate: 0.95,
-          langFilter: ['en-GB', 'en-US', 'en'],
+          rate: 0.96,
+          gender: 'male',
+          lang: 'en-US',
           prefix: 'The Sorting Hat: ',
         };
     }
   }
 
+  // Select the highest quality matching voice available on the user's OS
+  selectVoice(character) {
+    const voices = this.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    const settings = this.getCharacterSettings(character);
+    const targetLang = settings.lang || 'en-GB';
+
+    // 1. Try finding natural/online British English voice matching gender preference
+    if (settings.gender === 'female') {
+      const femaleGB = voices.find(
+        (v) =>
+          (v.lang.includes('en-GB') || v.lang.includes('en_GB')) &&
+          (v.name.toLowerCase().includes('female') ||
+           v.name.toLowerCase().includes('hazel') ||
+           v.name.toLowerCase().includes('libby') ||
+           v.name.toLowerCase().includes('sonia') ||
+           v.name.toLowerCase().includes('susan'))
+      );
+      if (femaleGB) return femaleGB;
+    } else {
+      const maleGB = voices.find(
+        (v) =>
+          (v.lang.includes('en-GB') || v.lang.includes('en_GB')) &&
+          (v.name.toLowerCase().includes('male') ||
+           v.name.toLowerCase().includes('george') ||
+           v.name.toLowerCase().includes('daniel') ||
+           v.name.toLowerCase().includes('oliver') ||
+           v.name.toLowerCase().includes('arthur') ||
+           v.name.toLowerCase().includes('ryan'))
+      );
+      if (maleGB) return maleGB;
+    }
+
+    // 2. Any British English voice (Hogwarts authentic feel)
+    const gbVoice = voices.find(
+      (v) => (v.lang.includes('en-GB') || v.lang.includes('en_GB')) && !v.name.includes('Google')
+    ) || voices.find((v) => v.lang.includes('en-GB') || v.lang.includes('en_GB'));
+    if (gbVoice) return gbVoice;
+
+    // 3. High quality natural English voice
+    const naturalVoice = voices.find(
+      (v) =>
+        v.lang.startsWith('en') &&
+        (v.name.toLowerCase().includes('natural') ||
+         v.name.toLowerCase().includes('online') ||
+         v.name.toLowerCase().includes('neural'))
+    );
+    if (naturalVoice) return naturalVoice;
+
+    // 4. Any English voice (en-US, en-IN, en-AU, en-CA, etc.)
+    const anyEnVoice = voices.find((v) => v.lang.toLowerCase().startsWith('en'));
+    if (anyEnVoice) return anyEnVoice;
+
+    // 5. System default
+    return voices[0] || null;
+  }
+
+  // Split text into natural, digestible sentence chunks
+  // This prevents Chrome's well-known 15-second speech freeze bug on long utterances
+  splitIntoChunks(text, maxChunkLen = 140) {
+    if (!text) return [];
+
+    // Split on punctuation followed by space or end of string
+    const rawSentences = text
+      .split(/([.!?]+(?:\s+|$))/)
+      .reduce((acc, cur, idx) => {
+        if (idx % 2 === 0) {
+          acc.push(cur);
+        } else if (acc.length > 0) {
+          acc[acc.length - 1] += cur;
+        }
+        return acc;
+      }, [])
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const chunks = [];
+    let current = '';
+
+    for (const sentence of rawSentences) {
+      if ((current + ' ' + sentence).trim().length <= maxChunkLen) {
+        current = (current + ' ' + sentence).trim();
+      } else {
+        if (current) chunks.push(current);
+        if (sentence.length > maxChunkLen) {
+          // If a single sentence is very long, split by comma or clause
+          const subParts = sentence.split(/([,;:]\s+)/);
+          let subCurr = '';
+          for (const sp of subParts) {
+            if ((subCurr + sp).length <= maxChunkLen) {
+              subCurr += sp;
+            } else {
+              if (subCurr.trim()) chunks.push(subCurr.trim());
+              subCurr = sp;
+            }
+          }
+          if (subCurr.trim()) current = subCurr.trim();
+          else current = '';
+        } else {
+          current = sentence;
+        }
+      }
+    }
+    if (current.trim()) chunks.push(current.trim());
+
+    return chunks.length > 0 ? chunks : [text];
+  }
+
   // Speak with selected character voice
-  speak(text, character = 'pythondore', onEndCallback = null) {
-    if (typeof window === 'undefined' || !this.speechSynth) return;
-    if (this.isMuted || !text) return;
+  speak(text, character = 'pythondore', onEndCallback = null, forceUnmute = true) {
+    if (typeof window === 'undefined') return;
 
-    // Cancel any ongoing speech
-    this.speechSynth.cancel();
+    // If user explicitly triggered a voice narration, automatically unmute so they hear it!
+    if (this.isMuted && forceUnmute) {
+      this.isMuted = false;
+      try {
+        localStorage.setItem('python_wizard_muted', 'false');
+      } catch {}
+      this.notify();
+    } else if (this.isMuted) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
 
-    // Clean text of markdown backticks, asterisks, and code blocks for speech
+    if (!text) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    // Unlock Web Audio context on user gesture
+    this.getAudioContext();
+
+    // Clean text of markdown backticks, asterisks, URLs, and code blocks for speech
     const cleanText = text
       .replace(/```[\s\S]*?```/g, 'Check the code snippet inscribed below.')
       .replace(/`([^`]+)`/g, '$1')
-      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
       .replace(/[*#_~]/g, '')
       .replace(/https?:\/\/\S+/g, '')
+      .replace(/\s+/g, ' ')
       .trim();
 
-    if (!cleanText) return;
+    if (!cleanText) {
+      if (onEndCallback) onEndCallback();
+      return;
+    }
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
+    // Stop and clear any ongoing speech cleanly
+    this.stopSpeech(false);
+
+    // Check if SpeechSynthesis is supported in this browser
+    if (!this.speechSynth || typeof window.SpeechSynthesisUtterance === 'undefined') {
+      // Fallback: Play magical melodic chime so user has auditory confirmation
+      this.playSpell('sparkle');
+      if (onEndCallback) {
+        setTimeout(onEndCallback, 1500);
+      }
+      return;
+    }
+
+    // Play a gentle wand shimmer spell sound before speaking
+    this.playSpell('wand');
+
+    // Split into natural sentence chunks to eliminate Chrome's 15-second speech freeze bug
+    const chunks = this.splitIntoChunks(cleanText);
+    this.chunkQueue = chunks;
+    this.currentChunkIndex = 0;
+    this.activeOnEndCallback = onEndCallback;
+
+    this.isSpeaking = true;
+    this.notify();
+
+    // Watchdog timer: If browser stalls or fails to emit onend, recover cleanly after safety window
+    const safetyDurationMs = Math.min(45000, Math.max(12000, cleanText.length * 90));
+    this.watchdogTimer = setTimeout(() => {
+      if (this.isSpeaking) {
+        this.stopSpeech(true);
+      }
+    }, safetyDurationMs);
+
+    // Keep-alive heartbeat: Chrome pauses speech if backgrounded or after idle ticks
+    this.heartbeatTimer = setInterval(() => {
+      if (!this.isSpeaking) {
+        clearInterval(this.heartbeatTimer);
+        this.heartbeatTimer = null;
+        return;
+      }
+      if (this.speechSynth && this.speechSynth.paused) {
+        try {
+          this.speechSynth.resume();
+        } catch {}
+      }
+    }, 3000);
+
+    // Chromium fix: wait 40ms after cancel() to let the native speech service flush
+    setTimeout(() => {
+      if (!this.isSpeaking) return;
+      this.speakNextChunk(character);
+    }, 40);
+  }
+
+  // Sequentially speaks each sentence chunk
+  speakNextChunk(character) {
+    if (!this.isSpeaking || this.currentChunkIndex >= this.chunkQueue.length) {
+      this.finishSpeech();
+      return;
+    }
+
+    const chunkText = this.chunkQueue[this.currentChunkIndex];
     const settings = this.getCharacterSettings(character);
+    const chosenVoice = this.selectVoice(character);
 
-    utterance.pitch = settings.pitch;
-    utterance.rate = settings.rate;
-    utterance.volume = 1;
-
-    // Pick a natural British/English voice if available
-    const voices = this.speechSynth.getVoices ? this.speechSynth.getVoices() : [];
-    if (voices.length > 0) {
-      let chosenVoice = null;
-
-      // Try matching British English first for authentic Hogwarts feel
-      chosenVoice = voices.find(
-        (v) => (v.lang.includes('en-GB') || v.lang.includes('en_GB')) && !v.name.includes('Google')
-      );
-
-      // Fallback to any British English voice
-      if (!chosenVoice) {
-        chosenVoice = voices.find((v) => v.lang.includes('en-GB') || v.lang.includes('en_GB'));
-      }
-
-      // Fallback to high quality English voice
-      if (!chosenVoice) {
-        chosenVoice = voices.find(
-          (v) => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Online'))
-        );
-      }
-
-      // Default English fallback
-      if (!chosenVoice) {
-        chosenVoice = voices.find((v) => v.lang.startsWith('en'));
-      }
+    try {
+      const utterance = new window.SpeechSynthesisUtterance(chunkText);
+      utterance.pitch = settings.pitch;
+      utterance.rate = settings.rate;
+      utterance.volume = 1;
+      utterance.lang = chosenVoice ? chosenVoice.lang : settings.lang || 'en-US';
 
       if (chosenVoice) {
         utterance.voice = chosenVoice;
       }
+
+      // CRITICAL CHROMIUM FIX: Anchor utterance on window object to prevent V8 Garbage Collection!
+      if (typeof window !== 'undefined') {
+        window._pb_active_utterance = utterance;
+      }
+      this.currentUtterance = utterance;
+
+      utterance.onend = () => {
+        if (!this.isSpeaking) return;
+        this.currentChunkIndex += 1;
+        if (this.currentChunkIndex < this.chunkQueue.length) {
+          // Speak next sentence chunk
+          this.speakNextChunk(character);
+        } else {
+          this.finishSpeech();
+        }
+      };
+
+      utterance.onerror = (event) => {
+        // If canceled or interrupted by user, do nothing special
+        if (event?.error === 'canceled' || event?.error === 'interrupted') {
+          return;
+        }
+        // If TTS engine errored on a chunk, attempt next or gracefully conclude
+        this.currentChunkIndex += 1;
+        if (this.currentChunkIndex < this.chunkQueue.length && this.isSpeaking) {
+          this.speakNextChunk(character);
+        } else {
+          this.finishSpeech();
+        }
+      };
+
+      // Ensure speech synthesis is resumed if paused
+      if (this.speechSynth.paused) {
+        this.speechSynth.resume();
+      }
+
+      this.speechSynth.speak(utterance);
+    } catch {
+      // If error creating utterance, conclude cleanly
+      this.finishSpeech();
     }
-
-    this.isSpeaking = true;
-    this.currentUtterance = utterance;
-    this.notify();
-
-    // Play a gentle wand shimmer before speaking
-    this.playSpell('wand');
-
-    utterance.onend = () => {
-      this.isSpeaking = false;
-      this.currentUtterance = null;
-      this.notify();
-      if (onEndCallback) onEndCallback();
-    };
-
-    utterance.onerror = () => {
-      this.isSpeaking = false;
-      this.currentUtterance = null;
-      this.notify();
-    };
-
-    this.speechSynth.speak(utterance);
   }
 
-  stopSpeech() {
-    if (this.speechSynth) {
-      this.speechSynth.cancel();
-    }
+  // Conclude speech lifecycle cleanly
+  finishSpeech() {
+    this.cleanTimers();
     this.isSpeaking = false;
     this.currentUtterance = null;
+    this.chunkQueue = [];
+    this.currentChunkIndex = 0;
+    if (typeof window !== 'undefined') {
+      window._pb_active_utterance = null;
+    }
     this.notify();
+
+    if (this.activeOnEndCallback) {
+      const cb = this.activeOnEndCallback;
+      this.activeOnEndCallback = null;
+      try {
+        cb();
+      } catch {}
+    }
+  }
+
+  // Clear timers
+  cleanTimers() {
+    if (this.watchdogTimer) {
+      clearTimeout(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+  }
+
+  // Stop speech playback
+  stopSpeech(triggerCallback = true) {
+    this.cleanTimers();
+
+    if (this.speechSynth) {
+      try {
+        if (this.speechSynth.speaking || this.speechSynth.pending) {
+          this.speechSynth.cancel();
+        }
+      } catch {}
+    }
+
+    this.isSpeaking = false;
+    this.currentUtterance = null;
+    this.chunkQueue = [];
+    this.currentChunkIndex = 0;
+
+    if (typeof window !== 'undefined') {
+      window._pb_active_utterance = null;
+    }
+
+    this.notify();
+
+    if (triggerCallback && this.activeOnEndCallback) {
+      const cb = this.activeOnEndCallback;
+      this.activeOnEndCallback = null;
+      try {
+        cb();
+      } catch {}
+    } else {
+      this.activeOnEndCallback = null;
+    }
   }
 
   stop() {
-    this.stopSpeech();
+    this.stopSpeech(true);
   }
 }
 
