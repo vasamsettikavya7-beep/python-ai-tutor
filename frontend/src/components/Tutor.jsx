@@ -15,7 +15,12 @@ import {
   Wand2,
 } from 'lucide-react';
 import { askTutor } from '../services/api';
-import { getTopicGuide } from '../data/topicKnowledgeBase';
+import {
+  getTopicGuide,
+  isPythonRelated,
+  getNonPythonRejection,
+  generateTutorResponse,
+} from '../data/topicKnowledgeBase';
 import { PROFESSOR_PERSONAS } from '../data/hogwartsLore';
 import magicalAudio from '../services/magicalAudio';
 
@@ -177,6 +182,25 @@ export default function Tutor({
     setLoading(true);
     setError(null);
 
+    const prof = PROFESSOR_PERSONAS[selectedProfessor] || PROFESSOR_PERSONAS.pythondore;
+
+    // Strict Python scope enforcement: Only Python-related questions are allowed
+    if (!isPythonRelated(query.trim(), queryTopic)) {
+      setTimeout(() => {
+        const rejectionText = getNonPythonRejection(query.trim(), prof.name);
+        const assistantMessage = {
+          role: 'assistant',
+          text: rejectionText,
+          topic: queryTopic,
+          mode: mode,
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+        setLoading(false);
+      }, 300);
+      return;
+    }
+
     try {
       // Calls actual POST /tutor endpoint on FastAPI backend
       const response = await askTutor({
@@ -196,9 +220,14 @@ export default function Tutor({
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
-      if (err.message && err.message.includes('Unable to connect')) {
-        const guide = getTopicGuide(queryTopic, query.trim());
-        const fallbackAnswer = `### 📚 Python Guide: ${guide.title}\n\n*${guide.summary}*\n\n${guide.explanation}`;
+      if (
+        err.message &&
+        (err.message.includes('Unable to connect') ||
+          err.message.includes('Failed to fetch') ||
+          err.message.includes('NetworkError') ||
+          err.message.includes('500'))
+      ) {
+        const fallbackAnswer = generateTutorResponse(queryTopic, mode, query.trim(), prof.name);
 
         const assistantMessage = {
           role: 'assistant',

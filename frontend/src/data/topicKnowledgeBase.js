@@ -1010,13 +1010,160 @@ print("File suffix:", config_path.suffix)
   },
 };
 
+export const PYTHON_TOPIC_TERMS = [
+  'variable', 'variables', 'assignment', 'dynamic typing',
+  'data type', 'datatype', 'type casting', 'type conversion',
+  'int', 'integer', 'float', 'str', 'string', 'bool', 'boolean', 'complex',
+  'list', 'lists', 'append', 'pop', 'extend', 'slice', 'slicing', 'index', 'indexing',
+  'tuple', 'tuples', 'unpacking',
+  'dict', 'dictionary', 'dictionaries', 'key-value',
+  'set', 'sets', 'union', 'intersection',
+  'comprehension', 'list comprehension', 'dict comprehension',
+  'loop', 'loops', 'for loop', 'while loop', 'iteration', 'iterable', 'iterator', 'range',
+  'condition', 'conditionals', 'branching', 'if statement', 'elif', 'else',
+  'function', 'functions', 'parameter', 'parameters', 'argument', 'arguments', 'return value', 'scope', 'legb',
+  'oop', 'object-oriented', 'class', 'classes', 'object', 'objects',
+  'inheritance', 'polymorphism', 'encapsulation', 'dunder', 'magic method', '__init__', 'self',
+  'decorator', 'decorators', 'generator', 'generators', 'yield',
+  'context manager', 'with statement',
+  'async', 'await', 'asyncio', 'concurrency', 'coroutine', 'threading',
+  'memory management', 'metaclass', 'metaclasses',
+  'exception', 'exceptions', 'try except', 'traceback',
+  'syntax error', 'type error', 'value error', 'index error', 'key error',
+  'file i/o', 'read file', 'write file',
+  'module', 'modules', 'package', 'packages', 'standard library', 'pip', 'venv',
+  'lambda', 'closure', 'closures', 'recursion',
+  'regex', 'regular expression',
+  'print', 'len', 'input', 'isinstance', 'enumerate', 'zip', 'sorted',
+  'python', 'pythonic', 'pep8', 'code', 'syntax', 'indentation', 'algorithm', 'debugging'
+];
+
+export const CODE_PATTERNS = [
+  /\bdef\s+\w+\s*\(/i,
+  /\bclass\s+\w+/i,
+  /\bimport\s+\w+/i,
+  /\bfrom\s+\w+\s+import/i,
+  /\bprint\s*\(/i,
+  /\binput\s*\(/i,
+  /\blen\s*\(/i,
+  /\brange\s*\(/i,
+  /\bfor\s+\w+\s+in\b/i,
+  /\bwhile\s+.+:/i,
+  /\bif\s+.+:/i,
+  /\belif\s+.+:/i,
+  /\btry\s*:/i,
+  /\bexcept\b/i,
+  /\bwith\s+open\b/i,
+  /\breturn\b/i,
+  /\byield\b/i,
+  /=\s*\[.*\]/,
+  /=\s*\{.*\}/,
+  /=\s*\(.*\)/,
+  /\.append\(/i,
+  /\.pop\(/i,
+  /f["'].*\{.*\}["']/
+];
+
+export function isPythonRelated(query, topic = '') {
+  const q = (query || '').trim().toLowerCase();
+  if (!q) return false;
+
+  // Direct code pattern match
+  for (const pattern of CODE_PATTERNS) {
+    if (pattern.test(query)) return true;
+  }
+
+  // Explicit mention of Python
+  if (q.includes('python') || q.includes('py ') || q.endsWith('.py') || q.includes('.py ')) {
+    return true;
+  }
+
+  // Word token matching
+  const words = new Set(q.match(/\b[a-z_][a-z0-9_-]*\b/g) || []);
+  for (const term of PYTHON_TOPIC_TERMS) {
+    if (term.includes(' ')) {
+      if (q.includes(term)) return true;
+    } else {
+      if (words.has(term)) return true;
+    }
+  }
+
+  return false;
+}
+
+export function getNonPythonRejection(query, professorName = 'Professor Pythondore') {
+  const cleanQ = (query || '').trim() || 'your question';
+  return `🧙‍♂️ **Hogwarts Python Tutor Notice**
+
+Greetings from **${professorName}** (and Python Buddy)! 🪄🐍
+
+Your question (*"${cleanQ}"*) is outside the scope of Python programming.
+
+I am dedicated exclusively to answering questions related to **Python programming** and our Python curriculum topics.
+
+Please ask a Python-related question, for example:
+- *"What is a variable and how does assignment work in Python?"*
+- *"How do for and while loops iterate in Python?"*
+- *"What is the difference between a list and a tuple?"*
+- *"How do functions and return values work in Python?"*
+- *"How do I handle errors using try and except?"*
+
+Or choose any topic from the curriculum menu above to begin exploring spells and runes! 📚✨`;
+}
+
+export function resolveTopicFromQuery(query, fallbackTopic = 'Variables') {
+  const q = (query || '').toLowerCase();
+  if (!q) return fallbackTopic;
+
+  const TOPIC_KEYWORDS_MAP = [
+    { topic: 'Loops', keywords: ['loop', 'for loop', 'while loop', 'range(', 'range ', 'iteration', 'break', 'continue'] },
+    { topic: 'Lists', keywords: ['list', 'lists', 'append', 'pop(', 'extend', 'slice', 'dynamic array'] },
+    { topic: 'Dictionaries', keywords: ['dict', 'dictionary', 'key-value', 'keys()', 'values()', '.get('] },
+    { topic: 'Tuples', keywords: ['tuple', 'tuples', 'unpacking', 'immutable sequence'] },
+    { topic: 'Sets', keywords: ['set', 'sets', 'union', 'intersection', 'unique collection'] },
+    { topic: 'Functions', keywords: ['function', 'def ', 'return', 'parameter', 'arguments', 'return value'] },
+    { topic: 'Scope', keywords: ['scope', 'legb', 'global', 'nonlocal', 'namespace'] },
+    { topic: 'Conditions', keywords: ['condition', 'if statement', 'elif', 'else', 'branching', 'truthy'] },
+    { topic: 'Strings', keywords: ['string', 'strings', 'f-string', 'slice', 'strip', 'split', 'join'] },
+    { topic: 'Operators', keywords: ['operator', 'arithmetic', 'modulo', 'comparison', 'identity'] },
+    { topic: 'Data Types', keywords: ['data type', 'datatype', 'type casting', 'type conversion', 'int(', 'float(', 'bool('] },
+    { topic: 'Variables', keywords: ['variable', 'variables', 'assignment', 'assign'] },
+    { topic: 'Exception Handling', keywords: ['exception', 'try', 'except', 'traceback', 'error', 'raise'] },
+    { topic: 'OOP', keywords: ['oop', 'object oriented', 'class', 'classes', 'inheritance', 'polymorphism', 'dunder', '__init__', 'self'] },
+    { topic: 'Decorators', keywords: ['decorator', 'decorators', '@'] },
+    { topic: 'Generators', keywords: ['generator', 'generators', 'yield'] },
+    { topic: 'Context Managers', keywords: ['context manager', 'with open', 'with statement', '__enter__'] },
+    { topic: 'Async / Await', keywords: ['async', 'await', 'asyncio', 'concurrency'] },
+    { topic: 'File I/O', keywords: ['file', 'open(', 'read file', 'write file'] },
+    { topic: 'Lambda Functions', keywords: ['lambda', 'anonymous function'] },
+    { topic: 'List Comprehensions', keywords: ['comprehension', 'list comprehension'] },
+    { topic: 'Regular Expressions (Regex)', keywords: ['regex', 'regular expression', 're.match', 're.search'] },
+  ];
+
+  for (const item of TOPIC_KEYWORDS_MAP) {
+    if (item.keywords.some((kw) => q.includes(kw))) {
+      return item.topic;
+    }
+  }
+
+  return fallbackTopic;
+}
+
 /**
  * Helper to retrieve a formatted curriculum guide for any topic
  */
 export function getTopicGuide(topicName, questionQuery = '') {
+  // If questionQuery specifies a different Python topic, prioritize that topic
+  if (questionQuery) {
+    const resolvedTopic = resolveTopicFromQuery(questionQuery, topicName);
+    if (resolvedTopic && TOPIC_KNOWLEDGE_BASE[resolvedTopic]) {
+      return TOPIC_KNOWLEDGE_BASE[resolvedTopic];
+    }
+  }
+
   if (!topicName) topicName = 'Variables';
 
-  // Find exact or case-insensitive match
+  // Find exact match
   const directMatch = TOPIC_KNOWLEDGE_BASE[topicName];
   if (directMatch) return directMatch;
 
@@ -1026,7 +1173,7 @@ export function getTopicGuide(topicName, questionQuery = '') {
 
   const foundKey = Object.keys(TOPIC_KNOWLEDGE_BASE).find((key) => {
     const k = key.toLowerCase();
-    return lowerTopic.includes(k) || k.includes(lowerTopic) || lowerQuery.includes(k);
+    return lowerQuery.includes(k) || lowerTopic.includes(k) || k.includes(lowerTopic);
   });
 
   if (foundKey) {
@@ -1039,4 +1186,47 @@ export function getTopicGuide(topicName, questionQuery = '') {
     summary: `Foundational overview of ${topicName} in Python.`,
     explanation: `Here is a foundational review of **${topicName}** in Python:\n\n\`\`\`python\n# Practice ${topicName}\n# Explore interactive questions in the Quiz tab!\n\`\`\`\n\n- Visit the **Quiz** tab to practice questions on this topic and earn XP.`,
   };
+}
+
+export function generateTutorResponse(topic, mode, query, professorName = 'Professor Pythondore') {
+  const resolvedTopic = resolveTopicFromQuery(query, topic);
+  const guide = getTopicGuide(resolvedTopic, query);
+
+  if (mode === 'Practice') {
+    return `### ⚗️ ${professorName}'s Python Practice: ${guide.title}
+
+**Objective:** Brew a working solution using **${guide.title}**!
+
+${guide.summary}
+
+\`\`\`python
+# Practice Problem: Write code using ${guide.title}
+# Hint: Study the pattern below:
+${guide.explanation.split('**Key Points:**')[0].trim()}
+\`\`\`
+
+🪄 *Take a moment to practice this in your editor, then test your spell mastery in the Quiz tab!*`;
+  }
+
+  if (mode === 'Quiz') {
+    return `### 🪄 ${professorName}'s Challenge: ${guide.title}
+
+*${guide.summary}*
+
+**Concept Question:**
+How does Python handle ${guide.title} in real-world scripts?
+
+${guide.explanation}
+
+🏆 *Ready for house points? Jump to the **Quiz** tab to answer randomized questions and earn +25 XP!*`;
+  }
+
+  // Default: Learn / Tutor
+  return `### 📚 ${guide.title}
+
+*${guide.summary}*
+
+${guide.explanation}
+
+✨ **${professorName}'s Guidance:** Keep experimenting with this syntax! Ask me any specific doubts about Python syntax, loops, or functions.`;
 }

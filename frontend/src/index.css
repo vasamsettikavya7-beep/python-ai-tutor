@@ -334,8 +334,105 @@
   font-weight: 800 !important;
 }
 
-.theme-hogwarts .roadmap-card span,
-.theme-hogwarts .next-lessons-card span {
+/* Descriptive text inside cards */
+.theme-hogwarts .roadmap-card .text-slate-500,
+.theme-hogwarts .roadmap-card .text-slate-400,
+.theme-hogwarts .next-lessons-card .text-slate-500,
+.theme-hogwarts .next-lessons-card .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Personalized Learning Engine Badge & Tailored Heading */
+.theme-hogwarts .personalized-engine-badge,
+.theme-hogwarts .house-rank-pill,
+.theme-hogwarts .bg-amber-100,
+.theme-hogwarts .bg-yellow-100 {
+  background-color: rgba(69, 26, 3, 0.94) !important;
+  color: #fde047 !important;
+  border: 1px solid rgba(245, 158, 11, 0.65) !important;
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25) !important;
+}
+
+.theme-hogwarts .personalized-engine-badge *,
+.theme-hogwarts .house-rank-pill *,
+.theme-hogwarts .bg-amber-100 *,
+.theme-hogwarts .bg-yellow-100 * {
+  color: #fde047 !important;
+  font-weight: 800 !important;
+}
+
+.theme-hogwarts .bg-amber-50,
+.theme-hogwarts .bg-yellow-50 {
+  background-color: rgba(69, 26, 3, 0.8) !important;
+  color: #fde047 !important;
+  border: 1px solid rgba(245, 158, 11, 0.5) !important;
+}
+
+.theme-hogwarts .bg-amber-50 *,
+.theme-hogwarts .bg-yellow-50 * {
+  color: #fde047 !important;
+}
+
+.theme-hogwarts .dashboard-tailored-heading,
+.theme-hogwarts .dashboard-tailored-heading * {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* High Contrast Badges in Roadmap & Next Lessons */
+.theme-hogwarts .xp-reward-badge,
+.theme-hogwarts .ready-to-start-badge,
+.theme-hogwarts .next-lessons-card .bg-emerald-100,
+.theme-hogwarts .roadmap-card .bg-emerald-100 {
+  background-color: rgba(6, 78, 59, 0.85) !important;
+  color: #34d399 !important;
+  border: 1px solid rgba(52, 211, 153, 0.6) !important;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.25) !important;
+  font-weight: 800 !important;
+}
+
+.theme-hogwarts .xp-reward-badge *,
+.theme-hogwarts .ready-to-start-badge *,
+.theme-hogwarts .next-lessons-card .bg-emerald-100 *,
+.theme-hogwarts .roadmap-card .bg-emerald-100 * {
+  color: #34d399 !important;
+}
+
+.theme-hogwarts .next-lessons-card .bg-amber-200,
+.theme-hogwarts .roadmap-card .bg-amber-200 {
+  background-color: rgba(120, 53, 15, 0.85) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.6) !important;
+  font-weight: 800 !important;
+}
+
+.theme-hogwarts .next-lessons-card .bg-amber-200 *,
+.theme-hogwarts .roadmap-card .bg-amber-200 * {
+  color: #fbbf24 !important;
+}
+
+.theme-hogwarts .next-lessons-card .bg-purple-50,
+.theme-hogwarts .roadmap-card .bg-purple-50 {
+  background-color: rgba(59, 7, 100, 0.85) !important;
+  color: #e9d5ff !important;
+  border: 1px solid rgba(192, 132, 252, 0.5) !important;
+  font-weight: 700 !important;
+}
+
+.theme-hogwarts .next-lessons-card .bg-purple-50 *,
+.theme-hogwarts .roadmap-card .bg-purple-50 * {
+  color: #e9d5ff !important;
+}
+
+.theme-hogwarts .next-lessons-card .bg-white,
+.theme-hogwarts .roadmap-card .bg-white {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  color: #cbd5e1 !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.theme-hogwarts .next-lessons-card .bg-white *,
+.theme-hogwarts .roadmap-card .bg-white * {
   color: #cbd5e1 !important;
 }
 
@@ -357,9 +454,34 @@
   font-weight: 500 !important;
 }
 
+/* Step 1 Ready to Start Card & Next Steps */
+.theme-hogwarts .roadmap-card .border-emerald-300 {
+  background-color: rgba(6, 30, 20, 0.92) !important;
+  border-color: rgba(52, 211, 153, 0.55) !important;
+}
+
+.theme-hogwarts .roadmap-card .border-emerald-300 p {
+  color: #f1f5f9 !important;
+}
+
+.theme-hogwarts .roadmap-card .border-emerald-300 button {
+  color: #34d399 !important;
+}
+
+.theme-hogwarts .roadmap-card .bg-slate-50\/70,
+.theme-hogwarts .roadmap-card .bg-slate-50 {
+  background-color: rgba(15, 23, 42, 0.78) !important;
+  border-color: rgba(245, 158, 11, 0.25) !important;
+}
+
+.theme-hogwarts .roadmap-card .bg-slate-50\/70 p,
+.theme-hogwarts .roadmap-card .bg-slate-50 p {
+  color: #e2e8f0 !important;
+}
+
 /* Slide Lesson Items in Next Lessons */
 .theme-hogwarts .lesson-item-card {
-  background-color: rgba(18, 27, 50, 0.92) !important;
+  background-color: rgba(18, 27, 50, 0.94) !important;
   border-color: rgba(245, 158, 11, 0.3) !important;
 }
 

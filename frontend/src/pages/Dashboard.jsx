@@ -99,10 +99,18 @@ export default function Dashboard({
     <div className="space-y-8 animate-in fade-in duration-300">
       {/* Hogwarts Great Hall Hero Welcome Banner */}
       <div className="sparkle-card bg-gradient-to-r from-amber-950 via-slate-900 to-indigo-950 rounded-3xl p-6 sm:p-8 text-amber-100 shadow-xl shadow-amber-950/20 border-2 border-amber-400/40 relative overflow-hidden">
-        {/* Background decorative magical runes */}
-        <div className="absolute -right-10 -bottom-10 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-3 right-10 text-7xl opacity-20 select-none animate-pulse">
-          🏰
+        {/* Background decorative magical runes & Enriched Hogwarts Castle */}
+        <div className="absolute -right-10 -bottom-10 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none" />
+        
+        {/* Hogwarts Castle Illustration filling the open card space */}
+        <div className="absolute right-3 sm:right-8 lg:right-14 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none select-none z-0">
+          <div className="w-56 h-56 lg:w-80 lg:h-80 bg-gradient-to-tr from-amber-500/20 via-purple-500/20 to-transparent rounded-full blur-2xl absolute" />
+          <div className="text-8xl sm:text-9xl md:text-[140px] lg:text-[170px] leading-none opacity-45 sm:opacity-60 lg:opacity-85 filter drop-shadow-[0_12px_32px_rgba(245,158,11,0.45)] transition-all duration-700 hover:scale-105">
+            🏰
+          </div>
+          <span className="hidden sm:inline-block mt-1 text-[11px] font-extrabold uppercase tracking-widest text-amber-200/70 bg-amber-950/60 border border-amber-400/30 px-3 py-0.5 rounded-full backdrop-blur-xs">
+            Hogwarts Castle
+          </span>
         </div>
 
         <div className="relative z-10 max-w-2xl">
@@ -221,8 +229,9 @@ export default function Dashboard({
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
-              {houseObj.crest} House {houseObj.name} • {wizardRank.name}
+            <span className="house-rank-pill text-xs font-extrabold text-amber-300 bg-amber-950/80 px-3.5 py-1.5 rounded-full border border-amber-500/50 shadow-sm inline-flex items-center gap-1.5">
+              <span>{houseObj.crest}</span>
+              <span>House {houseObj.name} • {wizardRank.name}</span>
             </span>
           </div>
         </div>
@@ -340,11 +349,13 @@ export default function Dashboard({
       {/* PERSONALIZED RECOMMENDATION & NEXT LESSON (Very Important) */}
       <div>
         <div className="mb-4">
-          <span className="text-xs font-extrabold uppercase tracking-widest text-amber-700 bg-amber-100 px-2.5 py-1 rounded-md">
-            Personalized Learning Engine
+          <span className="personalized-engine-badge text-xs font-extrabold uppercase tracking-widest text-amber-800 bg-amber-100 px-3 py-1 rounded-lg border border-amber-300/80 shadow-2xs inline-flex items-center gap-1.5">
+            <span>🪄</span>
+            <span>Personalized Learning Engine</span>
           </span>
-          <h2 className="text-xl font-extrabold text-slate-900 mt-1">
-            Tailored Path for {student?.name || 'You'}
+          <h2 className="dashboard-tailored-heading text-2xl font-black text-slate-900 mt-2 tracking-tight flex items-center gap-2">
+            <span>Tailored Path for {student?.name || 'You'}</span>
+            <span className="text-amber-400 text-lg">✨</span>
           </h2>
         </div>
 
