@@ -110,25 +110,37 @@ export default function OwlPostDailyChallenge({ student, onAwardPoints }) {
       ) : (
         <div className="space-y-4">
           {/* Parchment Scroll Box */}
-          <div className="bg-[#fcf6e5] text-slate-900 p-4 sm:p-5 rounded-2xl border-2 border-amber-300 shadow-md font-serif relative">
-            <span className="absolute top-3 right-3 text-2xl opacity-30 select-none">
+          <div
+            className="parchment-scroll p-4 sm:p-5 rounded-2xl border-2 border-amber-400 shadow-lg font-serif relative"
+            style={{ backgroundColor: '#fbf5df', color: '#1a0e02' }}
+          >
+            <span className="absolute top-3 right-3 text-2xl opacity-40 select-none">
               📜
             </span>
-            <div className="flex items-center gap-1.5 text-xs text-amber-900 font-bold mb-2">
-              <span>From:</span>
-              <span className="font-extrabold text-amber-950">{challenge.parchmentSender}</span>
+            <div className="flex items-center gap-1.5 text-xs font-bold mb-2">
+              <span className="parchment-label font-extrabold text-amber-900" style={{ color: '#78350f' }}>From:</span>
+              <span className="parchment-sender font-extrabold text-amber-950" style={{ color: '#451a03' }}>{challenge.parchmentSender}</span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-sans mb-3">
+            <p
+              className="parchment-riddle text-sm sm:text-base leading-relaxed font-sans mb-3.5 font-semibold"
+              style={{ color: '#1a0e02' }}
+            >
               "{challenge.riddle}"
             </p>
 
-            <div className="bg-amber-100/70 p-2.5 rounded-xl border border-amber-200/80 text-[11px] font-mono text-amber-950 space-y-1">
-              <span className="font-bold text-amber-900 block font-sans text-[10px] uppercase tracking-wider">
+            <div
+              className="parchment-ingredients bg-[#fef3c7] p-3 rounded-xl border border-amber-300 text-xs font-mono space-y-1.5 shadow-inner"
+              style={{ backgroundColor: '#fef3c7', color: '#2e1603' }}
+            >
+              <span
+                className="parchment-label font-extrabold block font-sans text-[11px] uppercase tracking-wider text-amber-900"
+                style={{ color: '#78350f' }}
+              >
                 Cauldron Ingredients:
               </span>
               {challenge.potionIngredients.map((ing, i) => (
-                <div key={i} className="text-xs font-semibold">
-                  • <code>{ing}</code>
+                <div key={i} className="text-xs font-bold" style={{ color: '#2e1603' }}>
+                  • <code className="bg-amber-200/70 px-1.5 py-0.5 rounded font-mono font-bold" style={{ color: '#1a0e02' }}>{ing}</code>
                 </div>
               ))}
             </div>

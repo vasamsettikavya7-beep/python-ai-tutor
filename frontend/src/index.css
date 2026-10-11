@@ -196,9 +196,71 @@
   color: #d8b4fe !important;
 }
 
-.theme-hogwarts .text-rose-900,
 .theme-hogwarts .text-rose-800 {
   color: #fda4af !important;
+}
+
+/* ------------------------------------------------------------
+   PARCHMENT SCROLL OVERRIDES (Hogwarts Daily Owl Post Parchment)
+   Ensures rich, dark, crisp, readable ink on vintage parchment scroll
+   ------------------------------------------------------------ */
+.parchment-scroll,
+.theme-hogwarts .parchment-scroll,
+.theme-dark .parchment-scroll {
+  background-color: #fbf5df !important;
+  border: 2px solid #d97706 !important;
+  color: #1a0e02 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+.parchment-scroll p,
+.theme-hogwarts .parchment-scroll p,
+.theme-dark .parchment-scroll p,
+.parchment-scroll .parchment-riddle,
+.theme-hogwarts .parchment-scroll .parchment-riddle,
+.theme-dark .parchment-scroll .parchment-riddle {
+  color: #1a0e02 !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.6 !important;
+}
+
+.parchment-scroll .parchment-label,
+.theme-hogwarts .parchment-scroll .parchment-label,
+.theme-dark .parchment-scroll .parchment-label {
+  color: #78350f !important;
+  font-weight: 800 !important;
+}
+
+.parchment-scroll .parchment-sender,
+.theme-hogwarts .parchment-scroll .parchment-sender,
+.theme-dark .parchment-scroll .parchment-sender {
+  color: #451a03 !important;
+  font-weight: 800 !important;
+}
+
+.parchment-scroll .parchment-ingredients,
+.theme-hogwarts .parchment-scroll .parchment-ingredients,
+.theme-dark .parchment-scroll .parchment-ingredients {
+  background-color: #fef3c7 !important;
+  border: 1px solid #f59e0b !important;
+  color: #2e1603 !important;
+}
+
+.parchment-scroll .parchment-ingredients span,
+.parchment-scroll .parchment-ingredients div,
+.theme-hogwarts .parchment-scroll .parchment-ingredients span,
+.theme-hogwarts .parchment-scroll .parchment-ingredients div {
+  color: #2e1603 !important;
+  font-weight: 600 !important;
+}
+
+.parchment-scroll code,
+.theme-hogwarts .parchment-scroll code,
+.theme-dark .parchment-scroll code {
+  color: #1a0e02 !important;
+  background-color: rgba(217, 119, 6, 0.2) !important;
+  font-weight: 700 !important;
 }
 
 /* General Borders */
