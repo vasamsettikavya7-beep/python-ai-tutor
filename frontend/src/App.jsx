@@ -231,6 +231,44 @@ export default function App() {
     loadStudentData(resolvedStudent.id);
   };
 
+  // Award XP from House quests (Potions Cauldron, Owl Post Daily Challenge, etc.)
+  const handleAwardXp = useCallback((pts) => {
+    if (!pts || pts <= 0) return;
+    setStudent((prevStudent) => {
+      if (!prevStudent) return prevStudent;
+      const currentXp = (prevStudent.xp || 0) + pts;
+      const updatedStudent = {
+        ...prevStudent,
+        xp: currentXp,
+      };
+      try {
+        localStorage.setItem(STORAGE_STUDENT_ID_KEY, String(updatedStudent.id));
+        localStorage.setItem(`python_buddy_student_${updatedStudent.id}`, JSON.stringify(updatedStudent));
+        const rawAll = localStorage.getItem('python_buddy_all_students');
+        if (rawAll) {
+          const allList = JSON.parse(rawAll);
+          const updatedList = allList.map((s) => (s.id === updatedStudent.id ? { ...s, xp: currentXp } : s));
+          localStorage.setItem('python_buddy_all_students', JSON.stringify(updatedList));
+        }
+      } catch {}
+      return updatedStudent;
+    });
+
+    setRecommendation((prevRec) => {
+      if (!prevRec) return prevRec;
+      const updatedRec = {
+        ...prevRec,
+        total_xp: (prevRec.total_xp || 0) + pts,
+      };
+      if (student?.id) {
+        try {
+          localStorage.setItem(`python_buddy_rec_${student.id}`, JSON.stringify(updatedRec));
+        } catch {}
+      }
+      return updatedRec;
+    });
+  }, [student?.id]);
+
   // Navigations with context
   const handleStartPractice = (topic = 'Variables', mode = 'Practice') => {
     setTutorTopic(topic);
@@ -361,6 +399,7 @@ export default function App() {
                   setStudentModalMode('register');
                   setStudentModalOpen(true);
                 }}
+                onAwardPoints={handleAwardXp}
                 loading={loading}
               />
             )}

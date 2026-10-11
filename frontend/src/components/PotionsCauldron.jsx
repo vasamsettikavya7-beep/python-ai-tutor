@@ -326,9 +326,15 @@ export default function PotionsCauldron({ isOpen, onClose, onAwardPoints }) {
                   <span>Expected Output: <code className="bg-black/30 px-1 py-0.5 rounded text-amber-300 font-bold">{recipe.expectedOutput}</code></span>
                 </div>
               </div>
-              <span className="font-extrabold text-amber-300 bg-amber-950/80 px-3 py-1 rounded-xl border border-amber-400/40 shrink-0 text-xs">
-                +25 House Points!
-              </span>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className="font-extrabold text-amber-300 bg-amber-950/90 px-3 py-1 rounded-xl border border-amber-400/60 text-xs shadow-md shadow-amber-500/20 animate-pulse flex items-center gap-1.5">
+                  <span>⚡</span>
+                  <span>+25 House Points & XP!</span>
+                </span>
+                <span className="text-[10px] text-emerald-300 font-bold">
+                  ✓ Added to your Profile XP!
+                </span>
+              </div>
             </div>
           )}
 

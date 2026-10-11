@@ -40,6 +40,7 @@ export default function Dashboard({
   onStartLesson,
   onStartQuiz,
   onStartFresh,
+  onAwardPoints,
   loading,
 }) {
   const [speakingChar, setSpeakingChar] = useState(null);
@@ -66,12 +67,16 @@ export default function Dashboard({
   };
 
   const handleAwardHousePoints = (pts) => {
-    setBonusHousePoints((prev) => prev + pts);
+    if (onAwardPoints) {
+      onAwardPoints(pts);
+    } else {
+      setBonusHousePoints((prev) => prev + pts);
+    }
   };
 
   const totalQuestions = recommendation?.total_questions ?? (student?.sessions_completed ?? 0);
   const baseStudentXp = student?.xp ?? recommendation?.total_xp ?? 0;
-  const xp = baseStudentXp + bonusHousePoints;
+  const xp = baseStudentXp + (onAwardPoints ? 0 : bonusHousePoints);
   const isNewStudent = totalQuestions === 0 && xp === 0;
   const score = isNewStudent ? 0 : (recommendation?.score_percentage ?? (totalQuestions > 0 ? 100 : 0));
   const correctAnswers = isNewStudent ? 0 : (recommendation?.correct_answers ?? totalQuestions);
